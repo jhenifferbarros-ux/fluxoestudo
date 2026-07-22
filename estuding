@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Estudos PCRR - VUNESP | Google Workspace Automation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        google: {
+                            blue: '#1a73e8',
+                            blueHover: '#1557b0',
+                            red: '#ea4335',
+                            yellow: '#fbbc04',
+                            green: '#34a853',
+                            gray: '#5f6368',
+                            bg: '#f8f9fa'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Google Sans', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .flashcard-flip {
+            perspective: 1000px;
+        }
+        .flashcard-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            backface-visibility: hidden;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 bg-slate-50 antialiased selection:bg-google-blue selection:text-white">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm px-4 lg:px-8 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-google-blue flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                <i class="fa-solid fa-shield-halved text-xl"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-bold text-lg text-slate-900 tracking-tight">PCRR VUNESP Hub</h1>
+                    <span class="bg-blue-100 text-google-blue text-xs font-semibold px-2.5 py-0.5 rounded-full border border-blue-200">Auxiliar de Perito / Necrópsia</span>
+                </div>
+                <p class="text-xs text-slate-500 flex items-center gap-2">
+                    <span><i class="fa-regular fa-clock text-google-blue"></i> Seg-Sex (19h-21h) | Dom (Livre)</span>
+                    <span class="inline-block w-1 h-1 rounded-full bg-slate-300"></span>
+                    <span class="text-emerald-600 font-medium"><i class="fa-solid fa-check text-xs"></i> Sem Redação (Art 18.a.IV)</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Quick Metrics Summary Bar -->
+        <div class="hidden md:flex items-center gap-6 border-l border-slate-200 pl-6">
+            <div class="text-right">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Pontuação Alvo</div>
+                <div class="text-base font-bold text-slate-800" id="headerScore">0 / 100 pts</div>
+            </div>
+            <div class="w-28 bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
+                <div id="headerProgressBar" class="bg-google-green h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <button onclick="switchTab('script')" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-slate-200">
+                <i class="fa-brands fa-google text-google-blue text-sm"></i>
+                <span>Sincronizar Google Calendar</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN WRAPPER -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <aside class="w-20 lg:w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0">
+            <nav class="p-3 space-y-1">
+                <button onclick="switchTab('cronograma')" id="nav-cronograma" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-google-blue bg-blue-50 border border-blue-100">
+                    <i class="fa-solid fa-calendar-check text-lg w-5 text-center"></i>
+                    <span class="hidden lg:inline">Cronograma & Edital</span>
+                </button>
+
+                <button onclick="switchTab('flashcards')" id="nav-flashcards" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-layer-group text-lg w-5 text-center text-slate-500"></i>
+                    <span class="hidden lg:inline flex-1 text-left">Flashcards (Anki)</span>
+                    <span id="flashcardBadge" class="hidden lg:inline-block bg-google-red text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+                </button>
+
+                <button onclick="switchTab('feynman')" id="nav-feynman" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-pen-to-square text-lg w-5 text-center text-slate-500"></i>
+                    <span class="hidden lg:inline">Caderno Feynman</span>
+                </button>
+
+                <button onclick="switchTab('script')" id="nav-script" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-code text-lg w-5 text-center text-slate-500"></i>
+                    <span class="hidden lg:inline">Google Apps Script</span>
+                </button>
+
+                <button onclick="switchTab('desempenho')" id="nav-desempenho" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-chart-pie text-lg w-5 text-center text-slate-500"></i>
+                    <span class="hidden lg:inline">Desempenho VUNESP</span>
+                </button>
+            </nav>
+
+            <!-- SENASP Reference Badge -->
+            <div class="p-4 m-3 bg-slate-50 border border-slate-200 rounded-xl hidden lg:block">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-700 mb-1">
+                    <i class="fa-solid fa-book-bookmark text-google-yellow"></i>
+                    <span>Fontes Oficiais</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                    Integrado aos Manuais de Operações Técnicas SENASP e Diretrizes de Criminalística PCRR.
+                </p>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-4 lg:p-8 bg-slate-50" id="mainContent">
+
+            <!-- TAB 1: CRONOGRAMA & EDITAL VERTICALIZADO -->
+            <section id="tab-cronograma" class="tab-panel space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Cronograma Semanal & Edital Ativo</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Estudo quinzenal inteligente com peso duplo para matérias específicas VUNESP.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="filterWeight" onchange="renderSyllabus()" class="bg-slate-100 border border-slate-200 text-xs font-medium rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-google-blue">
+                            <option value="all">Todas as Matérias</option>
+                            <option value="especifica">Apenas Conhecimentos Específicos (Peso 2)</option>
+                            <option value="geral">Apenas Conhecimentos Gerais (Peso 1)</option>
+                        </select>
+                        <button onclick="resetDataModal()" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-2 rounded-lg text-xs font-medium border border-rose-200 transition-all">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> Resetar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Daily Schedule Overview Pills -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Segunda (19h-21h)</span>
+                        <p class="text-xs font-bold text-slate-800">Português + Direito</p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Terça (19h-21h)</span>
+                        <p class="text-xs font-bold text-slate-800">Matemática + POP 8.01/8.02</p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Quarta (19h-21h)</span>
+                        <p class="text-xs font-bold text-slate-800">Português + Estatuto RR</p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Quinta (19h-21h)</span>
+                        <p class="text-xs font-bold text-slate-800">Matemática + Arquivologia</p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Sexta (19h-21h)</span>
+                        <p class="text-xs font-bold text-slate-800">Informática + POP 8.03</p>
+                    </div>
+                    <div class="bg-google-blue text-white p-3.5 rounded-xl shadow-md shadow-blue-500/20">
+                        <span class="text-[10px] font-bold uppercase tracking-wider opacity-80 block mb-1">Domingo (Livre)</span>
+                        <p class="text-xs font-bold">Simulado VUNESP + Erros</p>
+                    </div>
+                </div>
+
+                <!-- Syllabus Table -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                    <th class="p-4">Matéria / Conteúdo Programático</th>
+                                    <th class="p-4">Bloco / Peso</th>
+                                    <th class="p-4">Fonte Recomendada</th>
+                                    <th class="p-4">Status Ativo</th>
+                                    <th class="p-4 text-center">Taxa de Acertos</th>
+                                    <th class="p-4 text-right">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="syllabusTableBody" class="divide-y divide-slate-100 text-sm">
+                                <!-- Dynamically Rendered -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-flashcards" class="tab-panel hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Sistema de Flashcards (Anki Integration)</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Repetição espaçada com foco em Química Forense, POPs SENASP e Legislação de RR.</p>
+                    </div>
+                    <button onclick="openNewFlashcardModal()" class="bg-google-blue hover:bg-google-blueHover text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Novo Flashcard
+                    </button>
+                </div>
+
+                <!-- Flashcard Player Widget -->
+                <div class="max-w-xl mx-auto space-y-4">
+                    <div class="flex justify-between items-center text-xs text-slate-500 px-2">
+                        <span id="flashcardCounter">Cartão 1 de X</span>
+                        <span class="bg-blue-100 text-google-blue px-2.5 py-0.5 rounded-full font-medium" id="flashcardCategoryTag">Geral</span>
+                    </div>
+
+                    <!-- Flip Card Box -->
+                    <div id="flashcardBox" onclick="flipCard()" class="flashcard-flip w-full h-80 cursor-pointer">
+                        <div id="flashcardInner" class="flashcard-inner relative w-full h-full rounded-2xl glass-card border border-slate-200 shadow-lg p-8 flex flex-col justify-between text-center select-none">
+                            <!-- FRONT -->
+                            <div class="flashcard-front absolute inset-0 p-8 flex flex-col justify-between items-center bg-white rounded-2xl">
+                                <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">PERGUNTA / CONCEITO</span>
+                                <p id="flashcardQuestion" class="text-lg font-bold text-slate-800 my-auto leading-relaxed">Carregando...</p>
+                                <span class="text-xs text-google-blue font-medium"><i class="fa-solid fa-hand-pointer mr-1"></i> Clique para ver a resposta</span>
+                            </div>
+
+                            <!-- BACK -->
+                            <div class="flashcard-back absolute inset-0 p-8 flex flex-col justify-between items-center bg-slate-900 text-white rounded-2xl">
+                                <span class="text-[10px] uppercase font-bold tracking-widest text-google-yellow">RESPOSTA TÉCNICA / OFICIAL</span>
+                                <p id="flashcardAnswer" class="text-base font-medium text-slate-100 my-auto leading-relaxed">Carregando...</p>
+                                <span class="text-xs text-slate-400">Avalie sua facilidade abaixo para calcular a próxima revisão:</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rating Action Buttons -->
+                    <div class="grid grid-cols-3 gap-3 pt-2">
+                        <button onclick="rateFlashcard('errei')" class="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 py-3 rounded-xl font-semibold text-xs transition-all flex flex-col items-center gap-1">
+                            <span>🔴 Errei</span>
+                            <span class="text-[10px] text-rose-500 font-normal">Revisar em 1 min</span>
+                        </button>
+                        <button onclick="rateFlashcard('bom')" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 py-3 rounded-xl font-semibold text-xs transition-all flex flex-col items-center gap-1">
+                            <span>🟡 Bom</span>
+                            <span class="text-[10px] text-amber-500 font-normal">Revisar em 12h</span>
+                        </button>
+                        <button onclick="rateFlashcard('facil')" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 py-3 rounded-xl font-semibold text-xs transition-all flex flex-col items-center gap-1">
+                            <span>🟢 Fácil</span>
+                            <span class="text-[10px] text-emerald-500 font-normal">Revisar em 4 dias</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-feynman" class="tab-panel hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Caderno de Autoexplicação (Técnica de Feynman)</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Explique os conceitos complexos com suas próprias palavras para fixação profunda.</p>
+                    </div>
+                    <button onclick="saveFeynmanNote()" class="bg-google-green hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md shadow-emerald-500/20 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Salvar Anotação
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Note Form -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tópico do Edital / Matéria</label>
+                            <input type="text" id="feynmanTopic" placeholder="Ex: Biossegurança - POP 8.03 Reagentes para Papelão" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-google-blue">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Sua Autoexplicação (Em linguagem simples)</label>
+                            <textarea id="feynmanContent" rows="12" placeholder="Escreva como se estivesse ensinando uma pessoa leiga. Ex: A ninidrina reage com os aminoácidos do suor impregnado no papel..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-google-blue"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Notes History List -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[500px]">
+                        <h3 class="font-bold text-sm text-slate-900 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-google-blue"></i>
+                            <span>Minhas Anotações Salvas</span>
+                        </h3>
+                        <div id="feynmanList" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                            <!-- Dynamically Filled -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-script" class="tab-panel hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 text-google-blue flex items-center justify-center font-bold">
+                            <i class="fa-brands fa-google"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-900">Automação Nativa com Google Calendar</h2>
+                    </div>
+                    <p class="text-sm text-slate-600 leading-relaxed max-w-3xl">
+                        Copie o código **Google Apps Script (`Code.gs`)** abaixo e cole na sua conta do Google (gratuito) em <a href="https://script.google.com" target="_blank" class="text-google-blue underline font-medium">script.google.com</a>. Ele criará automaticamente toda a sua agenda de estudos de Segunda a Sexta (19h-21h) e Domingo no seu **Google Agenda**, enviando alertas Push 10 minutos antes no seu celular!
+                    </p>
+                </div>
+
+                <div class="bg-slate-900 text-slate-100 p-6 rounded-2xl shadow-xl relative font-mono text-xs overflow-x-auto">
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800 text-slate-400">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-code text-google-yellow"></i> Google Apps Script (Code.gs)</span>
+                        <button onclick="copyAppsScript()" class="bg-google-blue hover:bg-google-blueHover text-white px-3 py-1.5 rounded-lg font-sans font-medium text-xs transition-all flex items-center gap-1.5">
+                            <i class="fa-regular fa-copy"></i> Copiar Script
+                        </button>
+                    </div>
+                    <pre id="scriptCodeBlock" class="leading-relaxed text-emerald-400">
+/**
+ * AUTOMAÇÃO DE CRONOGRAMA PCRR VUNESP - GOOGLE CALENDAR
+ * Execute esta função uma única vez em script.google.com
+ */
+function criarCronogramaEstudosPCRR() {
+  var agenda = CalendarApp.getDefaultCalendar();
+  var hoje = new Date();
+  
+  // Grade de Horários
+  var diasSemana = [
+    { dia: 1, materia: "PCRR: Português + Direito Constitucional/Admin" }, // Segunda
+    { dia: 2, materia: "PCRR: Matemática + Biossegurança (POPs 8.01/8.02)" }, // Terça
+    { dia: 3, materia: "PCRR: Português + Estatuto Servidores RR" }, // Quarta
+    { dia: 4, materia: "PCRR: Matemática + Noções de Arquivologia" }, // Quinta
+    { dia: 5, materia: "PCRR: Informática + Laboratório (POP 8.03)" }   // Sexta
+  ];
+  
+  Logger.log("Iniciando agendamento no Google Calendar...");
+
+  // Agendar 4 semanas consecutivas
+  for (var semana = 0; semana < 4; semana++) {
+    // Aulas de Segunda a Sexta (19h às 21h)
+    diasSemana.forEach(function(item) {
+      var dataEvento = new Date(hoje.getTime() + (semana * 7 + (item.dia - hoje.getDay() + 7) % 7) * 86400000);
+      dataEvento.setHours(19, 0, 0, 0);
+      
+      var fimEvento = new Date(dataEvento.getTime());
+      fimEvento.setHours(21, 0, 0, 0);
+      
+      var evento = agenda.createEvent("📚 " + item.materia, dataEvento, fimEvento, {
+        description: "Foco total no Estudo Ativo VUNESP. 15min Questões + 30min Teoria + 15min Anki.",
+        location: "Mesa de Estudos"
+      });
+      evento.addPopupReminder(10); // Notificação no Celular 10min antes
+    });
+
+    // Simulado de Domingo (Manhã 08h-10h30 e Tarde 14h-16h30)
+    var domManha = new Date(hoje.getTime() + (semana * 7 + (0 - hoje.getDay() + 7) % 7) * 86400000);
+    domManha.setHours(8, 0, 0, 0);
+    var domManhaFim = new Date(domManha.getTime());
+    domManhaFim.setHours(10, 30, 0, 0);
+
+    var evDom = agenda.createEvent("🎯 PCRR: Simulado de Questões VUNESP (Manhã)", domManha, domManhaFim, {
+      description: "40 a 50 questões inéditas/anteriores sem consulta."
+    });
+    evDom.addPopupReminder(15);
+  }
+  
+  Logger.log("Concluído! Verifique o aplicativo Google Agenda no seu smartphone.");
+}
+                    </pre>
+                </div>
+            </section>
+
+            <section id="tab-desempenho" class="tab-panel hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900">Análise de Pontuação & Corte VUNESP</h2>
+                    <p class="text-sm text-slate-500 mt-0.5">Parâmetros oficiais do edital: mínimo de 50% por bloco e 60% no geral sem redação.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Stat Card 1 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Bloco 1: Conhecimentos Gerais</span>
+                            <span class="bg-blue-100 text-google-blue text-xs font-bold px-2.5 py-0.5 rounded-full">Peso 1 (Max 20 pts)</span>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="scoreGeral" class="text-3xl font-bold text-slate-900">0</span>
+                            <span class="text-sm text-slate-400">/ 20 pontos</span>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-medium">
+                                <span class="text-slate-500">Mínimo para não ser eliminado: 10 pts</span>
+                                <span id="statusGeralText" class="text-rose-500 font-bold">Abaixo do Mínimo</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div id="barGeral" class="bg-google-blue h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stat Card 2 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Bloco 2: Conhecimentos Específicos</span>
+                            <span class="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-0.5 rounded-full">Peso 2 (Max 80 pts)</span>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="scoreEspecifica" class="text-3xl font-bold text-slate-900">0</span>
+                            <span class="text-sm text-slate-400">/ 80 pontos</span>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-medium">
+                                <span class="text-slate-500">Mínimo para não ser eliminado: 40 pts</span>
+                                <span id="statusEspecificaText" class="text-rose-500 font-bold">Abaixo do Mínimo</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div id="barEspecifica" class="bg-google-yellow h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Box -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-sm text-slate-800 mb-4">Aproveitamento Mapeado por Matéria (%)</h3>
+                    <div class="h-64">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL: ADD/EDIT ACCURACY & STATUS -->
+    <div id="statusModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-base text-slate-900" id="modalTopicTitle">Atualizar Desempenho</h3>
+                <button onclick="closeStatusModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Taxa de Acertos na VUNESP (%)</label>
+                    <input type="number" id="modalAccuracyInput" min="0" max="100" placeholder="Ex: 85" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-google-blue">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeStatusModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+                <button onclick="saveTopicAccuracy()" class="bg-google-blue text-white px-5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20">Salvar Dados</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD FLASHCARD -->
+    <div id="newFlashcardModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-base text-slate-900">Novo Flashcard Personalizado</h3>
+                <button onclick="closeNewFlashcardModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Categoria</label>
+                    <input type="text" id="newFcCategory" placeholder="Ex: POP 8.03 ou Legislação" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Pergunta / Conceito</label>
+                    <textarea id="newFcQuestion" rows="3" placeholder="Ex: Qual o reagente recomendado para papiloscopia em superfícies porosas?" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Resposta Oficial</label>
+                    <textarea id="newFcAnswer" rows="3" placeholder="Ex: Ninidrina (reage com aminoácidos) e DFO." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeNewFlashcardModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600">Cancelar</button>
+                <button onclick="saveNewFlashcard()" class="bg-google-blue text-white px-5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20">Criar Cartão</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial PCRR VUNESP Data Architecture
+        const defaultSyllabus = [
+            { id: 1, subject: "Língua Portuguesa", topic: "Compreensão de Texto, Crase, Concordância e Regência", weight: 1, block: "geral", source: "Caderno VUNESP", accuracy: 0, status: "Pendente" },
+            { id: 2, subject: "Matemática", topic: "Resolução de Problemas, Regra de Três, Porcentagem e Equações", weight: 1, block: "geral", source: "Provas Anteriores", accuracy: 0, status: "Pendente" },
+            { id: 3, subject: "Direito Constitucional e Admin.", topic: "Art. 5º e Art. 144 da CF/88; Atos e Poderes Administrativos", weight: 2, block: "especifica", source: "Constituição & VUNESP", accuracy: 0, status: "Pendente" },
+            { id: 4, subject: "Legislação Estadual RR", topic: "Estatuto dos Servidores (LC 053/01) e Lei Orgânica PCRR (LC 055/01)", weight: 2, block: "especifica", source: "Legislação Seca", accuracy: 0, status: "Pendente" },
+            { id: 5, subject: "Ciências & Biossegurança", topic: "Preservação de Local de Crime; POPs SENASP 8.01 e 8.02 (EPIs)", weight: 2, block: "especifica", source: "Manual SENASP Vol. 8", accuracy: 0, status: "Pendente" },
+            { id: 6, subject: "Química Forense & Laboratório", topic: "Reagentes de Papiloscopia (POP 8.03: Ninidrina, Cianoacrilato, Amido Black)", weight: 2, block: "especifica", source: "Manual SENASP Vol. 8", accuracy: 0, status: "Pendente" },
+            { id: 7, subject: "Criminalística & Asfixiologia", topic: "Vestígio vs. Indício; Enforcamento, Estrangulamento e Sufocação", weight: 2, block: "especifica", source: "Livro de Criminalística", accuracy: 0, status: "Pendente" },
+            { id: 8, subject: "Noções de Arquivologia", topic: "Protocolo (Recebimento/Tramitação) e Tabela de Temporalidade", weight: 2, block: "especifica", source: "Resumo Técnico", accuracy: 0, status: "Pendente" },
+            { id: 9, subject: "Conhecimentos de Informática", topic: "Ambiente Google (Docs, Sheets, Slides), Segurança e Nuvem", weight: 2, block: "especifica", source: "Google Help & VUNESP", accuracy: 0, status: "Pendente" }
+        ];
+
+        const defaultFlashcards = [
+            { id: 1, category: "POP 8.03 SENASP", question: "Qual o reagente principal recomendado para revelação de impressões papilares em superfícies POROSAS (ex: papel/papelão)?", answer: "Ninidrina (reage com aminoácidos) e DFO (Diazafluorenona)." },
+            { id: 2, category: "POP 8.03 SENASP", question: "Qual o método recomendado para superfícies NÃO POROSAS (ex: vidro, plástico, metal)?", answer: "Vaporização com Cianoacrilato (éster) seguida de aplicação de pós reveladores." },
+            { id: 3, category: "POP 8.03 SENASP", question: "Qual reagente químico é utilizado especificamente para revelação de marcas em superfícies impregnadas com SANGUE?", answer: "Amido Black 10B (Acid Black 1) ou Leucocristal Violeta (LCV)." },
+            { id: 4, category: "Criminalística Geral", question: "Qual a diferença conceitual entre VESTÍGIO e EVIDÊNCIA?", answer: "Vestígio é qualquer objeto/marca bruta encontrada no local. Evidência é o vestígio analisado com relação comprovada com o crime." },
+            { id: 5, category: "Legislação de RR", question: "Qual a lei que instituiu o Estatuto dos Servidores Públicos do Estado de Roraima?", answer: "Lei Complementar Estadual nº 053/2001." },
+            { id: 6, category: "CF/88 Art. 144", question: "A quem compete a apuração de infrações penais (exceto militares) e a função de polícia judiciária no âmbito estadual?", answer: "À Polícia Civil, dirigida por Delegado de Polícia de carreira." },
+            { id: 7, category: "POP 8.01 Biossegurança", question: "Quais os EPIs mínimos obrigatórios para adentrar um local de crime com risco biológico?", answer: "Luvas de nitrila/látex, máscara PFF2/N95, macacão impermeável com capuz e sapatilhas pró-pé." }
+        ];
+
+        // Persistent State Storage
+        let syllabusData = JSON.parse(localStorage.getItem('pcrr_syllabus')) || defaultSyllabus;
+        let flashcardData = JSON.parse(localStorage.getItem('pcrr_flashcards')) || defaultFlashcards;
+        let feynmanNotes = JSON.parse(localStorage.getItem('pcrr_feynman')) || [];
+
+        let currentActiveFcIndex = 0;
+        let activeEditTopicId = null;
+        let chartInstance = null;
+
+        window.onload = function() {
+            renderSyllabus();
+            renderFlashcard();
+            renderFeynmanList();
+            initChart();
+            updateScores();
+        };
+
+        // Navigation Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-google-blue', 'bg-blue-50', 'border', 'border-blue-100');
+                btn.classList.add('text-slate-600');
+            });
+
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const activeNav = document.getElementById('nav-' + tabId);
+            activeNav.classList.add('text-google-blue', 'bg-blue-50', 'border', 'border-blue-100');
+            activeNav.classList.remove('text-slate-600');
+
+            if (tabId === 'desempenho') {
+                updateChart();
+            }
+        }
+
+        // Render Syllabus Table
+        function renderSyllabus() {
+            const tbody = document.getElementById('syllabusTableBody');
+            const filter = document.getElementById('filterWeight').value;
+            tbody.innerHTML = '';
+
+            syllabusData.forEach(item => {
+                if (filter !== 'all' && item.block !== filter) return;
+
+                let statusColor = 'bg-rose-100 text-rose-700';
+                if (item.status === 'Em Revisão') statusColor = 'bg-amber-100 text-amber-700';
+                if (item.status === 'Dominado') statusColor = 'bg-emerald-100 text-emerald-700';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition-all";
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="font-bold text-slate-800">${item.subject}</div>
+                        <div class="text-xs text-slate-500 max-w-xs">${item.topic}</div>
+                    </td>
+                    <td class="p-4">
+                        <span class="inline-block ${item.weight === 2 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-[10px] font-bold px-2 py-0.5 rounded-md border">
+                            Peso ${item.weight}
+                        </span>
+                    </td>
+                    <td class="p-4 text-xs font-medium text-slate-600">${item.source}</td>
+                    <td class="p-4">
+                        <span class="inline-block ${statusColor} text-xs font-semibold px-2.5 py-1 rounded-full">
+                            ${item.status}
+                        </span>
+                    </td>
+                    <td class="p-4 text-center font-bold text-slate-800">
+                        ${item.accuracy}%
+                    </td>
+                    <td class="p-4 text-right">
+                        <button onclick="openStatusModal(${item.id})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 transition-all">
+                            Editar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openStatusModal(id) {
+            activeEditTopicId = id;
+            const item = syllabusData.find(x => x.id === id);
+            document.getElementById('modalTopicTitle').innerText = item.subject + " (" + item.topic + ")";
+            document.getElementById('modalAccuracyInput').value = item.accuracy;
+            document.getElementById('statusModal').classList.remove('hidden');
+            document.getElementById('statusModal').classList.add('flex');
+        }
+
+        function closeStatusModal() {
+            document.getElementById('statusModal').classList.add('hidden');
+            document.getElementById('statusModal').classList.remove('flex');
+        }
+
+        function saveTopicAccuracy() {
+            const acc = parseInt(document.getElementById('modalAccuracyInput').value) || 0;
+            const item = syllabusData.find(x => x.id === activeEditTopicId);
+            item.accuracy = Math.min(100, Math.max(0, acc));
+
+            if (item.accuracy >= 80) {
+                item.status = "Dominado";
+            } else if (item.accuracy >= 50) {
+                item.status = "Em Revisão";
+            } else {
+                item.status = "Pendente";
+            }
+
+            localStorage.setItem('pcrr_syllabus', JSON.stringify(syllabusData));
+            renderSyllabus();
+            updateScores();
+            closeStatusModal();
+        }
+
+        function updateScores() {
+            let scoreG = 0; // max 20
+            let scoreE = 0; // max 80
+
+            syllabusData.forEach(item => {
+                const proportionalScore = (item.accuracy / 100);
+                if (item.block === 'geral') {
+                    scoreG += proportionalScore * 10; // 10 pts per subject
+                } else {
+                    scoreE += proportionalScore * 11.4; // approx for 80 max
+                }
+            });
+
+            scoreG = Math.round(scoreG);
+            scoreE = Math.min(80, Math.round(scoreE));
+            const total = scoreG + scoreE;
+
+            document.getElementById('scoreGeral').innerText = scoreG;
+            document.getElementById('scoreEspecifica').innerText = scoreE;
+            document.getElementById('headerScore').innerText = `${total} / 100 pts`;
+            document.getElementById('headerProgressBar').style.width = `${total}%`;
+
+            // Status checks
+            const statusG = document.getElementById('statusGeralText');
+            if (scoreG >= 10) {
+                statusG.innerText = "Aprovado no Mínimo";
+                statusG.className = "text-emerald-600 font-bold";
+            } else {
+                statusG.innerText = "Abaixo do Mínimo (Eliminado)";
+                statusG.className = "text-rose-500 font-bold";
+            }
+
+            const statusE = document.getElementById('statusEspecificaText');
+            if (scoreE >= 40) {
+                statusE.innerText = "Aprovado no Mínimo";
+                statusE.className = "text-emerald-600 font-bold";
+            } else {
+                statusE.innerText = "Abaixo do Mínimo (Eliminado)";
+                statusE.className = "text-rose-500 font-bold";
+            }
+        }
+
+        function renderFlashcard() {
+            if (flashcardData.length === 0) return;
+            const card = flashcardData[currentActiveFcIndex];
+            document.getElementById('flashcardQuestion').innerText = card.question;
+            document.getElementById('flashcardAnswer').innerText = card.answer;
+            document.getElementById('flashcardCategoryTag').innerText = card.category;
+            document.getElementById('flashcardCounter').innerText = `Cartão ${currentActiveFcIndex + 1} de ${flashcardData.length}`;
+            document.getElementById('flashcardBadge').innerText = flashcardData.length;
+
+            // Reset flip state
+            document.getElementById('flashcardInner').classList.remove('flipped');
+        }
+
+        function flipCard() {
+            document.getElementById('flashcardInner').classList.toggle('flipped');
+        }
+
+        function rateFlashcard(rating) {
+            currentActiveFcIndex = (currentActiveFcIndex + 1) % flashcardData.length;
+            renderFlashcard();
+        }
+
+        function openNewFlashcardModal() {
+            document.getElementById('newFlashcardModal').classList.remove('hidden');
+            document.getElementById('newFlashcardModal').classList.add('flex');
+        }
+
+        function closeNewFlashcardModal() {
+            document.getElementById('newFlashcardModal').classList.add('hidden');
+            document.getElementById('newFlashcardModal').classList.remove('flex');
+        }
+
+        function saveNewFlashcard() {
+            const cat = document.getElementById('newFcCategory').value || "Geral";
+            const q = document.getElementById('newFcQuestion').value;
+            const a = document.getElementById('newFcAnswer').value;
+
+            if (!q || !a) return;
+
+            flashcardData.push({
+                id: Date.now(),
+                category: cat,
+                question: q,
+                answer: a
+            });
+
+            localStorage.setItem('pcrr_flashcards', JSON.stringify(flashcardData));
+            currentActiveFcIndex = flashcardData.length - 1;
+            renderFlashcard();
+            closeNewFlashcardModal();
+        }
+
+        function saveFeynmanNote() {
+            const topic = document.getElementById('feynmanTopic').value;
+            const content = document.getElementById('feynmanContent').value;
+
+            if (!topic || !content) return;
+
+            feynmanNotes.unshift({
+                id: Date.now(),
+                topic: topic,
+                content: content,
+                date: new Date().toLocaleDateString('pt-BR')
+            });
+
+            localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
+            document.getElementById('feynmanTopic').value = '';
+            document.getElementById('feynmanContent').value = '';
+            renderFeynmanList();
+        }
+
+        function renderFeynmanList() {
+            const container = document.getElementById('feynmanList');
+            container.innerHTML = '';
+
+            if (feynmanNotes.length === 0) {
+                container.innerHTML = '<div class="text-xs text-slate-400 p-4 text-center">Nenhuma anotação criada ainda.</div>';
+                return;
+            }
+
+            feynmanNotes.forEach(note => {
+                const item = document.createElement('div');
+                item.className = "bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1";
+                item.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-xs text-slate-800">${note.topic}</span>
+                        <span class="text-[10px] text-slate-400">${note.date}</span>
+                    </div>
+                    <p class="text-xs text-slate-600 line-clamp-2">${note.content}</p>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function copyAppsScript() {
+            const code = document.getElementById('scriptCodeBlock').innerText;
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = code;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            const btn = event.currentTarget;
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> Copiado!`;
+            setTimeout(() => {
+                btn.innerHTML = `<i class="fa-regular fa-copy"></i> Copiar Script`;
+            }, 2000);
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: syllabusData.map(x => x.subject),
+                    datasets: [{
+                        label: 'Taxa de Acertos (%)',
+                        data: syllabusData.map(x => x.accuracy),
+                        backgroundColor: '#1a73e8',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart() {
+            if (!chartInstance) return;
+            chartInstance.data.labels = syllabusData.map(x => x.subject);
+            chartInstance.data.datasets[0].data = syllabusData.map(x => x.accuracy);
+            chartInstance.update();
+        }
+
+        function resetDataModal() {
+            if (confirm("Tem certeza que deseja resetar todos os dados de estudos para o padrão?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
