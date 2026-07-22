@@ -212,7 +212,7 @@
                                     <th class="p-4">Dia e Horário</th>
                                     <th class="p-4">Matéria / Conteúdo Programático</th>
                                     <th class="p-4">Peso</th>
-                                    <th class="p-4">Link Oficial</th>
+                                    <th class="p-4">Materiais de Estudo (Oficial / PDF / Vídeo)</th>
                                     <th class="p-4">Status / Acertos</th>
                                     <th class="p-4 text-right">Ação</th>
                                 </tr>
@@ -382,12 +382,53 @@
     
     <!-- MODAL SPECIAL: INICIAR ESTUDO E ANOTAÇÃO RÁPIDA (FEYNMAN INTEG) -->
     <div id="studyNoteModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-start border-b border-slate-100 pb-3">
                 <div>
                     <span id="studyModalDayTag" class="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-google-blue px-2.5 py-0.5 rounded-md mb-1 inline-block">Dia</span>
                     <h3 class="font-bold text-base text-slate-900" id="studyModalTopicTitle">Título da Matéria</h3>
                 </div>
+                <button onclick="closeStudyNoteModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Material Multi-Source Direct Access Grid -->
+            <div class="space-y-1.5">
+                <div class="text-[11px] text-slate-400 font-bold uppercase">Fontes & Materiais Selecionados de Estudo</div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <a id="studyModalLinkOfficial" href="#" target="_blank" rel="noopener noreferrer" class="bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 p-2.5 rounded-xl transition-all flex flex-col justify-between group">
+                        <div class="flex items-center justify-between text-google-blue text-xs font-bold mb-1">
+                            <span><i class="fa-solid fa-building-columns mr-1"></i> Fonte Oficial</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </div>
+                        <span id="studyModalSourceText" class="text-[11px] font-medium text-slate-600 leading-tight">Site Oficial</span>
+                    </a>
+
+                    <a id="studyModalLinkPdf" href="#" target="_blank" rel="noopener noreferrer" class="bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 p-2.5 rounded-xl transition-all flex flex-col justify-between group">
+                        <div class="flex items-center justify-between text-emerald-600 text-xs font-bold mb-1">
+                            <span><i class="fa-solid fa-file-pdf mr-1"></i> PDF Público/Acadêmico</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </div>
+                        <span id="studyModalPdfText" class="text-[11px] font-medium text-slate-600 leading-tight">Apostila / Repositório</span>
+                    </a>
+
+                    <a id="studyModalLinkYt" href="#" target="_blank" rel="noopener noreferrer" class="bg-slate-50 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 p-2.5 rounded-xl transition-all flex flex-col justify-between group">
+                        <div class="flex items-center justify-between text-rose-600 text-xs font-bold mb-1">
+                            <span><i class="fa-brands fa-youtube mr-1"></i> Videoaulas YouTube</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </div>
+                        <span id="studyModalYtText" class="text-[11px] font-medium text-slate-600 leading-tight">Aulas & Questões</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Active Recall Note Form -->
+            <div class="space-y-3 pt-1">
+                <div class="flex justify-between items-center">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Anotação Rápida de Absorção (Técnica de Feynman)</label>
+                    <span class="text-[10px] text-slate-400">Escreva o que entendeu sem ler</span>
+                </div>
+                <textarea id="studyModalNoteInput" rows="5" placeholder="Resuma em poucas frases o que você absorveu durante a leitura do PDF, aula do YouTube ou legislação..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-google-blue"></textarea>
+            </div>
                 <button onclick="closeStudyNoteModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
@@ -528,7 +569,7 @@
     </div>
 
     <script>
-        // Default Detailed Syllabus Data with Schedule Days and Official Direct Links
+        // Default Detailed Syllabus Data with Schedule Days and Multi-Source Links (Official, Academic PDFs, YouTube)
         const defaultSyllabus = [
             { 
                 id: 1, 
@@ -538,8 +579,12 @@
                 topic: "Compreensão de Texto, Crase, Concordância e Regência", 
                 weight: 1, 
                 block: "geral", 
-                source: "Banca VUNESP - Provas", 
+                source: "Banca VUNESP", 
                 url: "https://www.vunesp.com.br",
+                pdfTitle: "Gramática Acadêmica (MEC/UFSC)",
+                pdfUrl: "https://repositorio.ufsc.br",
+                ytTitle: "Aulas de Português VUNESP",
+                ytUrl: "https://www.youtube.com/results?search_query=portugues+vunesp+crase+concordancia",
                 accuracy: 0, 
                 status: "Pendente" 
             },
@@ -553,6 +598,10 @@
                 block: "especifica", 
                 source: "Constituição Federal (Planalto)", 
                 url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+                pdfTitle: "Apostila Direito Constitucional (Senado/UnB)",
+                pdfUrl: "https://www2.senado.leg.br/bdsf/",
+                ytTitle: "Artigo 5 e 144 CF para VUNESP",
+                ytUrl: "https://www.youtube.com/results?search_query=direito+constitucional+art+5+art+144+vunesp",
                 accuracy: 0, 
                 status: "Pendente" 
             },
@@ -566,6 +615,10 @@
                 block: "geral", 
                 source: "Provas Anteriores VUNESP", 
                 url: "https://www.vunesp.com.br",
+                pdfTitle: "Livros e Apostilas OBMEP/IMPA",
+                pdfUrl: "https://www.obmep.org.br/material.htm",
+                ytTitle: "Resolução de Matemática VUNESP",
+                ytUrl: "https://www.youtube.com/results?search_query=matematica+vunesp+regra+de+tres+porcentagem",
                 accuracy: 0, 
                 status: "Pendente" 
             },
@@ -579,6 +632,10 @@
                 block: "especifica", 
                 source: "Portal SENASP / MJSP", 
                 url: "https://www.gov.br/mj/pt-br/assuntos/sua-seguranca/seguranca-publica/senasp",
+                pdfTitle: "Manual de Perícia e Local de Crime (USP/UNICAMP)",
+                pdfUrl: "https://www.gov.br/mj/pt-br/assuntos/sua-seguranca/seguranca-publica/senasp",
+                ytTitle: "Aulas de Biossegurança e Local de Crime",
+                ytUrl: "https://www.youtube.com/results?search_query=biosseguranca+pop+senasp+local+de+crime+pericia",
                 accuracy: 0, 
                 status: "Pendente" 
             },
@@ -592,6 +649,10 @@
                 block: "geral", 
                 source: "Questões VUNESP Geral", 
                 url: "https://www.vunesp.com.br",
+                pdfTitle: "Manual de Coesão Textual (MEC)",
+                pdfUrl: "https://www.gov.br/mec/pt-br",
+                ytTitle: "Conjunções VUNESP Comentadas",
+                ytUrl: "https://www.youtube.com/results?search_query=conjuncoes+vunesp+questoes",
                 accuracy: 0, 
                 status: "Pendente" 
             },
@@ -605,6 +666,10 @@
                 block: "especifica", 
                 source: "Assembleia Legislativa RR", 
                 url: "https://al.rr.leg.br",
+                pdfTitle: "Texto Compilado LC 053 e 055 (TJRR)",
+                pdfUrl: "https://atos.tjrr.jus.br",
+                ytTitle: "Estatuto dos Servidores de RR LC 053",
+                ytUrl: "https://www.youtube.com/results?search_query=lei+complementar+053+2001+roraima",
                 accuracy: 0, 
                 status: "Pendente" 
             },
@@ -618,6 +683,10 @@
                 block: "geral", 
                 source: "VUNESP Exercícios", 
                 url: "https://www.vunesp.com.br",
+                pdfTitle: "Apostila Geometria Plana/Espacial (IFSC)",
+                pdfUrl: "https://www.obmep.org.br/material.htm",
+                ytTitle: "Geometria Plana e Espacial VUNESP",
+                ytUrl: "https://www.youtube.com/results?search_query=geometria+plana+e+espacial+vunesp",
                 accuracy: 0, 
                 status: "Pendente" 
             },
@@ -631,6 +700,10 @@
                 block: "especifica", 
                 source: "Arquivo Nacional / CONARQ", 
                 url: "https://www.gov.br/arquivonacional/pt-br",
+                pdfTitle: "Manual da Gestão de Documentos (CONARQ)",
+                pdfUrl: "https://www.gov.br/conarq/pt-br",
+                ytTitle: "Arquivologia para Concursos VUNESP",
+                ytUrl: "https://www.youtube.com/results?search_query=arquivologia+vunesp+protocolo+tabela+de+temporalidade",
                 accuracy: 0, 
                 status: "Pendente" 
             },
@@ -644,6 +717,10 @@
                 block: "especifica", 
                 source: "Google Workspace Help", 
                 url: "https://support.google.com",
+                pdfTitle: "Guia do Usuário Google Workspace (IF/MEC)",
+                pdfUrl: "https://support.google.com",
+                ytTitle: "Informática VUNESP Google Workspace",
+                ytUrl: "https://www.youtube.com/results?search_query=informatica+vunesp+google+workspace+docs+sheets",
                 accuracy: 0, 
                 status: "Pendente" 
             },
@@ -657,6 +734,10 @@
                 block: "especifica", 
                 source: "Manual SENASP Vol. 8", 
                 url: "https://www.gov.br/mj/pt-br/assuntos/sua-seguranca/seguranca-publica/senasp",
+                pdfTitle: "Artigo Química Forense / Scielo (USP)",
+                pdfUrl: "https://www.scielo.br",
+                ytTitle: "Química Forense Reveladores POP 8.03",
+                ytUrl: "https://www.youtube.com/results?search_query=quimica+forense+ninidrina+cianoacrilato+pop+8.03",
                 accuracy: 0, 
                 status: "Pendente" 
             },
@@ -670,6 +751,10 @@
                 block: "especifica", 
                 source: "Acervo de Provas VUNESP", 
                 url: "https://www.vunesp.com.br",
+                pdfTitle: "Caderno de Provas VUNESP Anteriores",
+                pdfUrl: "https://www.vunesp.com.br",
+                ytTitle: "Resolução Prova VUNESP Auxiliar Perito",
+                ytUrl: "https://www.youtube.com/results?search_query=resolucao+prova+vunesp+auxiliar+de+necropsie+perito",
                 accuracy: 0, 
                 status: "Pendente" 
             }
@@ -766,10 +851,20 @@
                         </span>
                     </td>
                     <td class="p-4">
-                        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-semibold text-google-blue hover:underline bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                            <span>${item.source}</span>
-                        </a>
+                        <div class="flex flex-col gap-1.5">
+                            <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-google-blue hover:underline">
+                                <i class="fa-solid fa-building-columns text-[10px]"></i>
+                                <span>${item.source}</span>
+                            </a>
+                            <a href="${item.pdfUrl || item.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 hover:underline">
+                                <i class="fa-solid fa-file-pdf text-[10px]"></i>
+                                <span>${item.pdfTitle || 'PDF Público/Acadêmico'}</span>
+                            </a>
+                            <a href="${item.ytUrl || '#'}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-rose-600 hover:underline">
+                                <i class="fa-brands fa-youtube text-[10px]"></i>
+                                <span>${item.ytTitle || 'Aulas YouTube'}</span>
+                            </a>
+                        </div>
                     </td>
                     <td class="p-4">
                         <div class="flex items-center gap-2">
@@ -796,8 +891,17 @@
 
             document.getElementById('studyModalDayTag').innerText = item.day;
             document.getElementById('studyModalTopicTitle').innerText = `${item.subject} — ${item.topic}`;
+            
+            // Populate Multi-source Links
             document.getElementById('studyModalSourceText').innerText = item.source;
-            document.getElementById('studyModalLinkBtn').href = item.url;
+            document.getElementById('studyModalLinkOfficial').href = item.url;
+            
+            document.getElementById('studyModalPdfText').innerText = item.pdfTitle || "PDF Acadêmico/Gratuito";
+            document.getElementById('studyModalLinkPdf').href = item.pdfUrl || item.url;
+            
+            document.getElementById('studyModalYtText').innerText = item.ytTitle || "Videoaulas YouTube";
+            document.getElementById('studyModalLinkYt').href = item.ytUrl || "https://www.youtube.com";
+
             document.getElementById('studyModalAccuracy').value = item.accuracy || 0;
             document.getElementById('studyModalNoteInput').value = '';
 
