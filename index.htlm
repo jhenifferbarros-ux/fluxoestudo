@@ -3,10 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Estudos PCRR - VUNESP | Google Workspace Automation</title>
+    <title>Painel de Estudos PCRR - VUNESP | Guia Definitivo</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Performance Dashboard -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
@@ -94,14 +98,14 @@
             </div>
             <button onclick="openBackupModal()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-slate-200">
                 <i class="fa-solid fa-database text-google-blue text-sm"></i>
-                <span>Backup / Backup JSON</span>
+                <span>Backup JSON</span>
             </button>
         </div>
     </header>
 
-    <!-- MAIN WRAPPER -->
     <div class="flex-1 flex overflow-hidden">
 
+        <!-- Sidebar Navigation -->
         <aside class="w-20 lg:w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0">
             <nav class="p-3 space-y-1">
                 <button onclick="switchTab('cronograma')" id="nav-cronograma" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-google-blue bg-blue-50 border border-blue-100">
@@ -126,7 +130,7 @@
                 </button>
             </nav>
 
-            <!-- SENASP Reference Badge -->
+            <!-- Official References Badge -->
             <div class="p-4 m-3 bg-slate-50 border border-slate-200 rounded-xl hidden lg:block">
                 <div class="flex items-center gap-2 text-xs font-bold text-slate-700 mb-1">
                     <i class="fa-solid fa-book-bookmark text-google-yellow"></i>
@@ -138,9 +142,9 @@
             </div>
         </aside>
 
+        <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto p-4 lg:p-8 bg-slate-50" id="mainContent">
 
-            <!-- TAB 1: CRONOGRAMA & EDITAL VERTICALIZADO -->
             <section id="tab-cronograma" class="tab-panel space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <div>
@@ -159,7 +163,7 @@
                     </div>
                 </div>
 
-                <!-- Daily Schedule Overview Pills -->
+                <!-- Daily Schedule Cards -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Segunda (19h-21h)</span>
@@ -187,7 +191,7 @@
                     </div>
                 </div>
 
-                <!-- Syllabus Table -->
+                <!-- Interactive Syllabus Table -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -202,7 +206,7 @@
                                 </tr>
                             </thead>
                             <tbody id="syllabusTableBody" class="divide-y divide-slate-100 text-sm">
-                                <!-- Dynamically Rendered -->
+                                <!-- Dynamically Rendered via JS -->
                             </tbody>
                         </table>
                     </div>
@@ -220,7 +224,7 @@
                     </button>
                 </div>
 
-                <!-- Flashcard Player Widget -->
+                <!-- Flashcard Flip Widget -->
                 <div class="max-w-xl mx-auto space-y-4">
                     <div class="flex justify-between items-center text-xs text-slate-500 px-2">
                         <span id="flashcardCounter">Cartão 1 de X</span>
@@ -351,7 +355,7 @@
                     </div>
                 </div>
 
-                <!-- Chart Box -->
+                <!-- Interactive Chart Box -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-sm text-slate-800 mb-4">Aproveitamento Mapeado por Matéria (%)</h3>
                     <div class="h-64">
@@ -363,7 +367,7 @@
         </main>
     </div>
 
-    <!-- MODAL: ADD/EDIT ACCURACY & STATUS -->
+    <!-- MODAL 1: EDIT ACCURACY -->
     <div id="statusModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-100">
             <div class="flex justify-between items-center">
@@ -383,7 +387,7 @@
         </div>
     </div>
 
-    <!-- MODAL: ADD FLASHCARD -->
+    <!-- MODAL 2: NEW FLASHCARD -->
     <div id="newFlashcardModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
             <div class="flex justify-between items-center">
@@ -411,7 +415,7 @@
         </div>
     </div>
 
-    <!-- MODAL: BACKUP & DATA IMPORT/EXPORT -->
+    <!-- MODAL 3: BACKUP JSON EXPORT/IMPORT -->
     <div id="backupModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
             <div class="flex justify-between items-center">
@@ -442,7 +446,7 @@
     </div>
 
     <script>
-        // Initial PCRR VUNESP Data Architecture
+        // Initial PCRR VUNESP Syllabus Data Architecture
         const defaultSyllabus = [
             { id: 1, subject: "Língua Portuguesa", topic: "Compreensão de Texto, Crase, Concordância e Regência", weight: 1, block: "geral", source: "Caderno VUNESP", accuracy: 0, status: "Pendente" },
             { id: 2, subject: "Matemática", topic: "Resolução de Problemas, Regra de Três, Porcentagem e Equações", weight: 1, block: "geral", source: "Provas Anteriores", accuracy: 0, status: "Pendente" },
@@ -455,6 +459,7 @@
             { id: 9, subject: "Conhecimentos de Informática", topic: "Ambiente Google (Docs, Sheets, Slides), Segurança e Nuvem", weight: 2, block: "especifica", source: "Google Help & VUNESP", accuracy: 0, status: "Pendente" }
         ];
 
+        // Initial High-Yield Flashcards (Anki Style)
         const defaultFlashcards = [
             { id: 1, category: "POP 8.03 SENASP", question: "Qual o reagente principal recomendado para revelação de impressões papilares em superfícies POROSAS (ex: papel/papelão)?", answer: "Ninidrina (reage com aminoácidos) e DFO (Diazafluorenona)." },
             { id: 2, category: "POP 8.03 SENASP", question: "Qual o método recomendado para superfícies NÃO POROSAS (ex: vidro, plástico, metal)?", answer: "Vaporização com Cianoacrilato (éster) seguida de aplicação de pós reveladores." },
@@ -465,7 +470,7 @@
             { id: 7, category: "POP 8.01 Biossegurança", question: "Quais os EPIs mínimos obrigatórios para adentrar um local de crime com risco biológico?", answer: "Luvas de nitrila/látex, máscara PFF2/N95, macacão impermeável com capuz e sapatilhas pró-pé." }
         ];
 
-        // Persistent State Storage
+        // Persistent State Storage (localStorage)
         let syllabusData = JSON.parse(localStorage.getItem('pcrr_syllabus')) || defaultSyllabus;
         let flashcardData = JSON.parse(localStorage.getItem('pcrr_flashcards')) || defaultFlashcards;
         let feynmanNotes = JSON.parse(localStorage.getItem('pcrr_feynman')) || [];
@@ -482,7 +487,6 @@
             updateScores();
         };
 
-        // Navigation Switcher
         function switchTab(tabId) {
             document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -500,7 +504,6 @@
             }
         }
 
-        // Backup Modal Controls
         function openBackupModal() {
             document.getElementById('backupModal').classList.remove('hidden');
             document.getElementById('backupModal').classList.add('flex');
@@ -592,7 +595,25 @@
             });
         }
 
-        // Render Syllabus Table
+        function saveFeynmanNote() {
+            const topic = document.getElementById('feynmanTopic').value;
+            const content = document.getElementById('feynmanContent').value;
+
+            if (!topic || !content) return;
+
+            feynmanNotes.unshift({
+                id: Date.now(),
+                topic: topic,
+                content: content,
+                date: new Date().toLocaleDateString('pt-BR')
+            });
+
+            localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
+            document.getElementById('feynmanTopic').value = '';
+            document.getElementById('feynmanContent').value = '';
+            renderFeynmanList();
+        }
+
         function renderSyllabus() {
             const tbody = document.getElementById('syllabusTableBody');
             const filter = document.getElementById('filterWeight').value;
@@ -691,7 +712,7 @@
             document.getElementById('headerScore').innerText = `${total} / 100 pts`;
             document.getElementById('headerProgressBar').style.width = `${total}%`;
 
-            // Status checks
+            // Minimum score qualification status according to PCRR VUNESP rules
             const statusG = document.getElementById('statusGeralText');
             if (scoreG >= 10) {
                 statusG.innerText = "Aprovado no Mínimo";
@@ -720,7 +741,6 @@
             document.getElementById('flashcardCounter').innerText = `Cartão ${currentActiveFcIndex + 1} de ${flashcardData.length}`;
             document.getElementById('flashcardBadge').innerText = flashcardData.length;
 
-            // Reset flip state
             document.getElementById('flashcardInner').classList.remove('flipped');
         }
 
@@ -761,25 +781,6 @@
             currentActiveFcIndex = flashcardData.length - 1;
             renderFlashcard();
             closeNewFlashcardModal();
-        }
-
-        function saveFeynmanNote() {
-            const topic = document.getElementById('feynmanTopic').value;
-            const content = document.getElementById('feynmanContent').value;
-
-            if (!topic || !content) return;
-
-            feynmanNotes.unshift({
-                id: Date.now(),
-                topic: topic,
-                content: content,
-                date: new Date().toLocaleDateString('pt-BR')
-            });
-
-            localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
-            document.getElementById('feynmanTopic').value = '';
-            document.getElementById('feynmanContent').value = '';
-            renderFeynmanList();
         }
 
         function initChart() {
