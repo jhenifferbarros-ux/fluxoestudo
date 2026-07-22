@@ -45,14 +45,25 @@
             perspective: 1000px;
         }
         .flashcard-inner {
-            transition: transform 0.6s;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
         }
         .flashcard-inner.flipped {
             transform: rotateY(180deg);
         }
         .flashcard-front, .flashcard-back {
             backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 1rem;
+        }
+        .flashcard-front {
+            z-index: 2;
+            transform: rotateY(0deg);
         }
         .flashcard-back {
             transform: rotateY(180deg);
@@ -87,7 +98,6 @@
             </div>
         </div>
 
-        <!-- Quick Metrics Summary Bar -->
         <div class="hidden md:flex items-center gap-6 border-l border-slate-200 pl-6">
             <div class="text-right">
                 <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Pontuação Alvo</div>
@@ -110,7 +120,7 @@
             <nav class="p-3 space-y-1">
                 <button onclick="switchTab('cronograma')" id="nav-cronograma" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-google-blue bg-blue-50 border border-blue-100">
                     <i class="fa-solid fa-calendar-check text-lg w-5 text-center"></i>
-                    <span class="hidden lg:inline">Cronograma & Edital</span>
+                    <span class="hidden lg:inline">Cronograma & Links</span>
                 </button>
 
                 <button onclick="switchTab('flashcards')" id="nav-flashcards" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-slate-100">
@@ -130,32 +140,34 @@
                 </button>
             </nav>
 
-            <!-- Official References Badge -->
             <div class="p-4 m-3 bg-slate-50 border border-slate-200 rounded-xl hidden lg:block">
                 <div class="flex items-center gap-2 text-xs font-bold text-slate-700 mb-1">
                     <i class="fa-solid fa-book-bookmark text-google-yellow"></i>
-                    <span>Fontes Oficiais</span>
+                    <span>Fontes Certificadas</span>
                 </div>
                 <p class="text-[11px] text-slate-500 leading-relaxed">
-                    Integrado aos Manuais de Operações Técnicas SENASP e Diretrizes de Criminalística PCRR.
+                    Acesse os links oficiais direto em cada card de matéria no cronograma.
                 </p>
             </div>
         </aside>
 
-        <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto p-4 lg:p-8 bg-slate-50" id="mainContent">
 
             <section id="tab-cronograma" class="tab-panel space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <div>
-                        <h2 class="text-xl font-bold text-slate-900">Cronograma Semanal & Edital Ativo</h2>
-                        <p class="text-sm text-slate-500 mt-0.5">Estudo quinzenal inteligente com peso duplo para matérias específicas VUNESP.</p>
+                        <h2 class="text-xl font-bold text-slate-900">Cronograma Diário & Fontes Oficiais</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Clique nos dias ou acesse o link de cada matéria para iniciar o estudo ativo.</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <select id="filterWeight" onchange="renderSyllabus()" class="bg-slate-100 border border-slate-200 text-xs font-medium rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-google-blue">
-                            <option value="all">Todas as Matérias</option>
-                            <option value="especifica">Apenas Conhecimentos Específicos (Peso 2)</option>
-                            <option value="geral">Apenas Conhecimentos Gerais (Peso 1)</option>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <select id="filterDay" onchange="renderSyllabus()" class="bg-slate-100 border border-slate-200 text-xs font-medium rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-google-blue">
+                            <option value="all">Todos os Dias</option>
+                            <option value="Segunda">Segunda-feira</option>
+                            <option value="Terça">Terça-feira</option>
+                            <option value="Quarta">Quarta-feira</option>
+                            <option value="Quinta">Quinta-feira</option>
+                            <option value="Sexta">Sexta-feira</option>
+                            <option value="Domingo">Domingo (Livre)</option>
                         </select>
                         <button onclick="resetDataModal()" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-2 rounded-lg text-xs font-medium border border-rose-200 transition-all">
                             <i class="fa-solid fa-rotate-right mr-1"></i> Resetar
@@ -163,50 +175,50 @@
                     </div>
                 </div>
 
-                <!-- Daily Schedule Cards -->
+                <!-- Daily Cards Shortcuts -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                    <button onclick="filterByDay('Segunda')" class="text-left bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-google-blue transition-all">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Segunda (19h-21h)</span>
                         <p class="text-xs font-bold text-slate-800">Português + Direito</p>
-                    </div>
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                    </button>
+                    <button onclick="filterByDay('Terça')" class="text-left bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-google-blue transition-all">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Terça (19h-21h)</span>
                         <p class="text-xs font-bold text-slate-800">Matemática + POP 8.01/8.02</p>
-                    </div>
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                    </button>
+                    <button onclick="filterByDay('Quarta')" class="text-left bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-google-blue transition-all">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Quarta (19h-21h)</span>
                         <p class="text-xs font-bold text-slate-800">Português + Estatuto RR</p>
-                    </div>
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                    </button>
+                    <button onclick="filterByDay('Quinta')" class="text-left bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-google-blue transition-all">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Quinta (19h-21h)</span>
                         <p class="text-xs font-bold text-slate-800">Matemática + Arquivologia</p>
-                    </div>
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                    </button>
+                    <button onclick="filterByDay('Sexta')" class="text-left bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-google-blue transition-all">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Sexta (19h-21h)</span>
                         <p class="text-xs font-bold text-slate-800">Informática + POP 8.03</p>
-                    </div>
-                    <div class="bg-google-blue text-white p-3.5 rounded-xl shadow-md shadow-blue-500/20">
+                    </button>
+                    <button onclick="filterByDay('Domingo')" class="text-left bg-google-blue text-white p-3.5 rounded-xl shadow-md shadow-blue-500/20 hover:bg-google-blueHover transition-all">
                         <span class="text-[10px] font-bold uppercase tracking-wider opacity-80 block mb-1">Domingo (Livre)</span>
                         <p class="text-xs font-bold">Simulado VUNESP + Erros</p>
-                    </div>
+                    </button>
                 </div>
 
-                <!-- Interactive Syllabus Table -->
+                <!-- Table with Days, Links, and Actions -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                    <th class="p-4">Dia e Horário</th>
                                     <th class="p-4">Matéria / Conteúdo Programático</th>
-                                    <th class="p-4">Bloco / Peso</th>
-                                    <th class="p-4">Fonte Recomendada</th>
-                                    <th class="p-4">Status Ativo</th>
-                                    <th class="p-4 text-center">Taxa de Acertos</th>
+                                    <th class="p-4">Peso</th>
+                                    <th class="p-4">Link Oficial</th>
+                                    <th class="p-4">Status / Acertos</th>
                                     <th class="p-4 text-right">Ação</th>
                                 </tr>
                             </thead>
                             <tbody id="syllabusTableBody" class="divide-y divide-slate-100 text-sm">
-                                <!-- Dynamically Rendered via JS -->
+                                <!-- Dynamically filled via JS -->
                             </tbody>
                         </table>
                     </div>
@@ -216,51 +228,56 @@
             <section id="tab-flashcards" class="tab-panel hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h2 class="text-xl font-bold text-slate-900">Sistema de Flashcards (Anki Integration)</h2>
-                        <p class="text-sm text-slate-500 mt-0.5">Repetição espaçada com foco em Química Forense, POPs SENASP e Legislação de RR.</p>
+                        <h2 class="text-xl font-bold text-slate-900">Sistema de Flashcards Espaçados (Anki)</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Filtre por matéria ou crie novos cartões conforme avança nas leituras.</p>
                     </div>
-                    <button onclick="openNewFlashcardModal()" class="bg-google-blue hover:bg-google-blueHover text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> Novo Flashcard
-                    </button>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <select id="flashcardCategoryFilter" onchange="filterFlashcards()" class="bg-slate-100 border border-slate-200 text-xs font-semibold rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-google-blue">
+                            <option value="all">Todas as Categorias / Fontes</option>
+                        </select>
+                        <button onclick="openManageCardsModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check text-google-blue"></i> Gerenciar Cartões
+                        </button>
+                        <button onclick="openNewFlashcardModal()" class="bg-google-blue hover:bg-google-blueHover text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Novo Flashcard
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Flashcard Flip Widget -->
                 <div class="max-w-xl mx-auto space-y-4">
                     <div class="flex justify-between items-center text-xs text-slate-500 px-2">
-                        <span id="flashcardCounter">Cartão 1 de X</span>
-                        <span class="bg-blue-100 text-google-blue px-2.5 py-0.5 rounded-full font-medium" id="flashcardCategoryTag">Geral</span>
+                        <span id="flashcardCounter" class="font-medium text-slate-600">Cartão 1 de X</span>
+                        <span class="bg-blue-100 text-google-blue px-3 py-1 rounded-full font-bold" id="flashcardCategoryTag">Geral</span>
                     </div>
 
-                    <!-- Flip Card Box -->
                     <div id="flashcardBox" onclick="flipCard()" class="flashcard-flip w-full h-80 cursor-pointer">
-                        <div id="flashcardInner" class="flashcard-inner relative w-full h-full rounded-2xl glass-card border border-slate-200 shadow-lg p-8 flex flex-col justify-between text-center select-none">
-                            <!-- FRONT -->
-                            <div class="flashcard-front absolute inset-0 p-8 flex flex-col justify-between items-center bg-white rounded-2xl">
-                                <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">PERGUNTA / CONCEITO</span>
-                                <p id="flashcardQuestion" class="text-lg font-bold text-slate-800 my-auto leading-relaxed">Carregando...</p>
-                                <span class="text-xs text-google-blue font-medium"><i class="fa-solid fa-hand-pointer mr-1"></i> Clique para ver a resposta</span>
+                        <div id="flashcardInner" class="flashcard-inner relative w-full h-full rounded-2xl shadow-xl select-none">
+                            <div class="flashcard-front p-8 flex flex-col justify-between items-center bg-white border border-slate-200">
+                                <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400 bg-slate-100 px-2.5 py-1 rounded-md">PERGUNTA / CONCEITO</span>
+                                <p id="flashcardQuestion" class="text-base md:text-lg font-bold text-slate-800 my-auto text-center leading-relaxed">Carregando...</p>
+                                <span class="text-xs text-google-blue font-semibold bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100 flex items-center gap-1">
+                                    <i class="fa-solid fa-rotate mr-1"></i> Clique para revelar a resposta
+                                </span>
                             </div>
 
-                            <!-- BACK -->
-                            <div class="flashcard-back absolute inset-0 p-8 flex flex-col justify-between items-center bg-slate-900 text-white rounded-2xl">
-                                <span class="text-[10px] uppercase font-bold tracking-widest text-google-yellow">RESPOSTA TÉCNICA / OFICIAL</span>
-                                <p id="flashcardAnswer" class="text-base font-medium text-slate-100 my-auto leading-relaxed">Carregando...</p>
-                                <span class="text-xs text-slate-400">Avalie sua facilidade abaixo para calcular a próxima revisão:</span>
+                            <div class="flashcard-back p-8 flex flex-col justify-between items-center bg-slate-900 text-white border border-slate-800">
+                                <span class="text-[10px] uppercase font-bold tracking-widest text-google-yellow bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">RESPOSTA OFICIAL / TÉCNICA</span>
+                                <p id="flashcardAnswer" class="text-base md:text-lg font-medium text-amber-100 my-auto text-center leading-relaxed">Carregando...</p>
+                                <span class="text-xs text-slate-400">Avalie sua facilidade:</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Rating Action Buttons -->
                     <div class="grid grid-cols-3 gap-3 pt-2">
-                        <button onclick="rateFlashcard('errei')" class="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 py-3 rounded-xl font-semibold text-xs transition-all flex flex-col items-center gap-1">
+                        <button onclick="rateFlashcard('errei')" class="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 py-3 rounded-xl font-semibold text-xs transition-all flex flex-col items-center gap-1 shadow-sm">
                             <span>🔴 Errei</span>
                             <span class="text-[10px] text-rose-500 font-normal">Revisar em 1 min</span>
                         </button>
-                        <button onclick="rateFlashcard('bom')" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 py-3 rounded-xl font-semibold text-xs transition-all flex flex-col items-center gap-1">
+                        <button onclick="rateFlashcard('bom')" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 py-3 rounded-xl font-semibold text-xs transition-all flex flex-col items-center gap-1 shadow-sm">
                             <span>🟡 Bom</span>
                             <span class="text-[10px] text-amber-500 font-normal">Revisar em 12h</span>
                         </button>
-                        <button onclick="rateFlashcard('facil')" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 py-3 rounded-xl font-semibold text-xs transition-all flex flex-col items-center gap-1">
+                        <button onclick="rateFlashcard('facil')" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 py-3 rounded-xl font-semibold text-xs transition-all flex flex-col items-center gap-1 shadow-sm">
                             <span>🟢 Fácil</span>
                             <span class="text-[10px] text-emerald-500 font-normal">Revisar em 4 dias</span>
                         </button>
@@ -280,7 +297,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Note Form -->
                     <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tópico do Edital / Matéria</label>
@@ -292,7 +308,6 @@
                         </div>
                     </div>
 
-                    <!-- Notes History List -->
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[500px]">
                         <h3 class="font-bold text-sm text-slate-900 mb-3 flex items-center gap-2">
                             <i class="fa-solid fa-clock-rotate-left text-google-blue"></i>
@@ -312,7 +327,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Stat Card 1 -->
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                         <div class="flex justify-between items-center">
                             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Bloco 1: Conhecimentos Gerais</span>
@@ -333,7 +347,6 @@
                         </div>
                     </div>
 
-                    <!-- Stat Card 2 -->
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                         <div class="flex justify-between items-center">
                             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Bloco 2: Conhecimentos Específicos</span>
@@ -355,7 +368,6 @@
                     </div>
                 </div>
 
-                <!-- Interactive Chart Box -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-sm text-slate-800 mb-4">Aproveitamento Mapeado por Matéria (%)</h3>
                     <div class="h-64">
@@ -367,7 +379,54 @@
         </main>
     </div>
 
-    <!-- MODAL 1: EDIT ACCURACY -->
+    
+    <!-- MODAL SPECIAL: INICIAR ESTUDO E ANOTAÇÃO RÁPIDA (FEYNMAN INTEG) -->
+    <div id="studyNoteModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                <div>
+                    <span id="studyModalDayTag" class="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-google-blue px-2.5 py-0.5 rounded-md mb-1 inline-block">Dia</span>
+                    <h3 class="font-bold text-base text-slate-900" id="studyModalTopicTitle">Título da Matéria</h3>
+                </div>
+                <button onclick="closeStudyNoteModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Material Source Direct Access Box -->
+            <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl flex items-center justify-between gap-3">
+                <div>
+                    <div class="text-[11px] text-slate-400 font-bold uppercase">Fonte do Material Oficinal</div>
+                    <div id="studyModalSourceText" class="text-xs font-semibold text-slate-800">Fonte</div>
+                </div>
+                <a id="studyModalLinkBtn" href="#" target="_blank" rel="noopener noreferrer" class="bg-google-blue hover:bg-google-blueHover text-white px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm shrink-0">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Material
+                </a>
+            </div>
+
+            <!-- Quick Active Recall Note Form -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Anotação Rápida de Absorção (Técnica de Feynman)</label>
+                    <span class="text-[10px] text-slate-400">Escreva o que entendeu sem ler</span>
+                </div>
+                <textarea id="studyModalNoteInput" rows="6" placeholder="Resuma em poucas frases o que você absorveu durante a leitura/resolução deste tópico..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-google-blue"></textarea>
+            </div>
+
+            <!-- Accuracy % and Save -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Taxa de Acertos de Hoje (%)</label>
+                    <input type="number" id="studyModalAccuracy" min="0" max="100" placeholder="Ex: 80" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-google-blue">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="saveStudySessionNote()" class="w-full bg-google-green hover:bg-emerald-600 text-white py-2.5 rounded-xl font-semibold text-xs transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check"></i> Salvar & Marcar Concluído
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT ACCURACY ONLY -->
     <div id="statusModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-100">
             <div class="flex justify-between items-center">
@@ -387,7 +446,7 @@
         </div>
     </div>
 
-    <!-- MODAL 2: NEW FLASHCARD -->
+    <!-- MODAL: NEW FLASHCARD -->
     <div id="newFlashcardModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
             <div class="flex justify-between items-center">
@@ -396,16 +455,16 @@
             </div>
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Categoria</label>
-                    <input type="text" id="newFcCategory" placeholder="Ex: POP 8.03 ou Legislação" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Categoria / Matéria</label>
+                    <input type="text" id="newFcCategory" placeholder="Ex: Direito Penal, POP 8.03, Português" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-google-blue">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Pergunta / Conceito</label>
-                    <textarea id="newFcQuestion" rows="3" placeholder="Ex: Qual o reagente recomendado para papiloscopia em superfícies porosas?" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm"></textarea>
+                    <textarea id="newFcQuestion" rows="3" placeholder="Ex: Qual o prazo prescricional para sanção disciplinar leve?" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-google-blue"></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Resposta Oficial</label>
-                    <textarea id="newFcAnswer" rows="3" placeholder="Ex: Ninidrina (reage com aminoácidos) e DFO." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm"></textarea>
+                    <textarea id="newFcAnswer" rows="3" placeholder="Ex: O prazo prescricional é de 180 dias..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-google-blue"></textarea>
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
@@ -415,7 +474,30 @@
         </div>
     </div>
 
-    <!-- MODAL 3: BACKUP JSON EXPORT/IMPORT -->
+    <!-- MODAL: MANAGE FLASHCARDS -->
+    <div id="manageCardsModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-google-blue"></i>
+                    <span>Gerenciar Banco de Flashcards</span>
+                </h3>
+                <button onclick="closeManageCardsModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <p class="text-xs text-slate-500">Visualize todos os cartões cadastrados, exclua os obsoletos ou acompanhe suas fontes.</p>
+            
+            <div id="manageCardsList" class="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100">
+                <!-- Dynamically filled -->
+            </div>
+
+            <div class="flex justify-end border-t border-slate-100 pt-3">
+                <button onclick="closeManageCardsModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-semibold">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: BACKUP JSON -->
     <div id="backupModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
             <div class="flex justify-between items-center">
@@ -423,7 +505,7 @@
                 <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed">
-                Todos os seus dados ficam salvos automaticamente no seu navegador. Para garantir que você não perca seu progresso ao trocar de computador ou celular, você pode exportar e importar seu progresso em formato JSON.
+                Seus dados ficam salvos automaticamente no navegador. Exporte o arquivo JSON para backup ou transferência entre dispositivos.
             </p>
             <div class="space-y-3 pt-2">
                 <button onclick="exportDataJSON()" class="w-full bg-google-blue hover:bg-google-blueHover text-white py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2">
@@ -446,28 +528,162 @@
     </div>
 
     <script>
-        // Initial PCRR VUNESP Syllabus Data Architecture
+        // Default Detailed Syllabus Data with Schedule Days and Official Direct Links
         const defaultSyllabus = [
-            { id: 1, subject: "Língua Portuguesa", topic: "Compreensão de Texto, Crase, Concordância e Regência", weight: 1, block: "geral", source: "Caderno VUNESP", accuracy: 0, status: "Pendente" },
-            { id: 2, subject: "Matemática", topic: "Resolução de Problemas, Regra de Três, Porcentagem e Equações", weight: 1, block: "geral", source: "Provas Anteriores", accuracy: 0, status: "Pendente" },
-            { id: 3, subject: "Direito Constitucional e Admin.", topic: "Art. 5º e Art. 144 da CF/88; Atos e Poderes Administrativos", weight: 2, block: "especifica", source: "Constituição & VUNESP", accuracy: 0, status: "Pendente" },
-            { id: 4, subject: "Legislação Estadual RR", topic: "Estatuto dos Servidores (LC 053/01) e Lei Orgânica PCRR (LC 055/01)", weight: 2, block: "especifica", source: "Legislação Seca", accuracy: 0, status: "Pendente" },
-            { id: 5, subject: "Ciências & Biossegurança", topic: "Preservação de Local de Crime; POPs SENASP 8.01 e 8.02 (EPIs)", weight: 2, block: "especifica", source: "Manual SENASP Vol. 8", accuracy: 0, status: "Pendente" },
-            { id: 6, subject: "Química Forense & Laboratório", topic: "Reagentes de Papiloscopia (POP 8.03: Ninidrina, Cianoacrilato, Amido Black)", weight: 2, block: "especifica", source: "Manual SENASP Vol. 8", accuracy: 0, status: "Pendente" },
-            { id: 7, subject: "Criminalística & Asfixiologia", topic: "Vestígio vs. Indício; Enforcamento, Estrangulamento e Sufocação", weight: 2, block: "especifica", source: "Livro de Criminalística", accuracy: 0, status: "Pendente" },
-            { id: 8, subject: "Noções de Arquivologia", topic: "Protocolo (Recebimento/Tramitação) e Tabela de Temporalidade", weight: 2, block: "especifica", source: "Resumo Técnico", accuracy: 0, status: "Pendente" },
-            { id: 9, subject: "Conhecimentos de Informática", topic: "Ambiente Google (Docs, Sheets, Slides), Segurança e Nuvem", weight: 2, block: "especifica", source: "Google Help & VUNESP", accuracy: 0, status: "Pendente" }
+            { 
+                id: 1, 
+                day: "Segunda (19h-20h)",
+                dayShort: "Segunda",
+                subject: "Língua Portuguesa", 
+                topic: "Compreensão de Texto, Crase, Concordância e Regência", 
+                weight: 1, 
+                block: "geral", 
+                source: "Banca VUNESP - Provas", 
+                url: "https://www.vunesp.com.br",
+                accuracy: 0, 
+                status: "Pendente" 
+            },
+            { 
+                id: 2, 
+                day: "Segunda (20h-21h)",
+                dayShort: "Segunda",
+                subject: "Direito Constitucional & Admin.", 
+                topic: "Art. 5º e Art. 144 da CF/88; Atos e Poderes Administrativos", 
+                weight: 2, 
+                block: "especifica", 
+                source: "Constituição Federal (Planalto)", 
+                url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+                accuracy: 0, 
+                status: "Pendente" 
+            },
+            { 
+                id: 3, 
+                day: "Terça (19h-20h)",
+                dayShort: "Terça",
+                subject: "Matemática & RLM", 
+                topic: "Resolução de Problemas, Regra de Três, Porcentagem e Equações", 
+                weight: 1, 
+                block: "geral", 
+                source: "Provas Anteriores VUNESP", 
+                url: "https://www.vunesp.com.br",
+                accuracy: 0, 
+                status: "Pendente" 
+            },
+            { 
+                id: 4, 
+                day: "Terça (20h-21h)",
+                dayShort: "Terça",
+                subject: "Ciências & Biossegurança", 
+                topic: "Preservação de Local de Crime; POPs SENASP 8.01 e 8.02 (EPIs)", 
+                weight: 2, 
+                block: "especifica", 
+                source: "Portal SENASP / MJSP", 
+                url: "https://www.gov.br/mj/pt-br/assuntos/sua-seguranca/seguranca-publica/senasp",
+                accuracy: 0, 
+                status: "Pendente" 
+            },
+            { 
+                id: 5, 
+                day: "Quarta (19h-20h)",
+                dayShort: "Quarta",
+                subject: "Língua Portuguesa (Reescrita)", 
+                topic: "Conjunções, Coesão, Pontuação e Vozes Verbais", 
+                weight: 1, 
+                block: "geral", 
+                source: "Questões VUNESP Geral", 
+                url: "https://www.vunesp.com.br",
+                accuracy: 0, 
+                status: "Pendente" 
+            },
+            { 
+                id: 6, 
+                day: "Quarta (20h-21h)",
+                dayShort: "Quarta",
+                subject: "Legislação Estadual de Roraima", 
+                topic: "Estatuto dos Servidores (LC 053/01) e Lei Orgânica PCRR (LC 055/01)", 
+                weight: 2, 
+                block: "especifica", 
+                source: "Assembleia Legislativa RR", 
+                url: "https://al.rr.leg.br",
+                accuracy: 0, 
+                status: "Pendente" 
+            },
+            { 
+                id: 7, 
+                day: "Quinta (19h-20h)",
+                dayShort: "Quinta",
+                subject: "Matemática & Geometria", 
+                topic: "Sistemas de Medida, Perímetro, Área, Volume e Gráficos", 
+                weight: 1, 
+                block: "geral", 
+                source: "VUNESP Exercícios", 
+                url: "https://www.vunesp.com.br",
+                accuracy: 0, 
+                status: "Pendente" 
+            },
+            { 
+                id: 8, 
+                day: "Quinta (20h-21h)",
+                dayShort: "Quinta",
+                subject: "Noções de Arquivologia", 
+                topic: "Protocolo (Recebimento/Tramitação) e Tabela de Temporalidade", 
+                weight: 2, 
+                block: "especifica", 
+                source: "Arquivo Nacional / CONARQ", 
+                url: "https://www.gov.br/arquivonacional/pt-br",
+                accuracy: 0, 
+                status: "Pendente" 
+            },
+            { 
+                id: 9, 
+                day: "Sexta (19h-20h)",
+                dayShort: "Sexta",
+                subject: "Conhecimentos de Informática", 
+                topic: "Ambiente Google (Docs, Sheets, Slides), Segurança e Nuvem", 
+                weight: 2, 
+                block: "especifica", 
+                source: "Google Workspace Help", 
+                url: "https://support.google.com",
+                accuracy: 0, 
+                status: "Pendente" 
+            },
+            { 
+                id: 10, 
+                day: "Sexta (20h-21h)",
+                dayShort: "Sexta",
+                subject: "Química Forense & Laboratório", 
+                topic: "Reagentes de Papiloscopia (POP 8.03: Ninidrina, Cianoacrilato, Amido Black)", 
+                weight: 2, 
+                block: "especifica", 
+                source: "Manual SENASP Vol. 8", 
+                url: "https://www.gov.br/mj/pt-br/assuntos/sua-seguranca/seguranca-publica/senasp",
+                accuracy: 0, 
+                status: "Pendente" 
+            },
+            { 
+                id: 11, 
+                day: "Domingo (Livre)",
+                dayShort: "Domingo",
+                subject: "Simulado VUNESP & Erros", 
+                topic: "Simulado 60 Questões + Engenharia Reversa dos Erros", 
+                weight: 2, 
+                block: "especifica", 
+                source: "Acervo de Provas VUNESP", 
+                url: "https://www.vunesp.com.br",
+                accuracy: 0, 
+                status: "Pendente" 
+            }
         ];
 
-        // Initial High-Yield Flashcards (Anki Style)
         const defaultFlashcards = [
             { id: 1, category: "POP 8.03 SENASP", question: "Qual o reagente principal recomendado para revelação de impressões papilares em superfícies POROSAS (ex: papel/papelão)?", answer: "Ninidrina (reage com aminoácidos) e DFO (Diazafluorenona)." },
             { id: 2, category: "POP 8.03 SENASP", question: "Qual o método recomendado para superfícies NÃO POROSAS (ex: vidro, plástico, metal)?", answer: "Vaporização com Cianoacrilato (éster) seguida de aplicação de pós reveladores." },
             { id: 3, category: "POP 8.03 SENASP", question: "Qual reagente químico é utilizado especificamente para revelação de marcas em superfícies impregnadas com SANGUE?", answer: "Amido Black 10B (Acid Black 1) ou Leucocristal Violeta (LCV)." },
             { id: 4, category: "Criminalística Geral", question: "Qual a diferença conceitual entre VESTÍGIO e EVIDÊNCIA?", answer: "Vestígio é qualquer objeto/marca bruta encontrada no local. Evidência é o vestígio analisado com relação comprovada com o crime." },
-            { id: 5, category: "Legislação de RR", question: "Qual a lei que instituiu o Estatuto dos Servidores Públicos do Estado de Roraima?", answer: "Lei Complementar Estadual nº 053/2001." },
+            { id: 5, category: "Direito Penal", question: "O que caracteriza o crime de Peculato Apropriação (Art. 312 do CP)?", answer: "Apropriar-se o funcionário público de dinheiro, valor ou qualquer outro bem móvel, público ou particular, de que tem a posse em razão do cargo." },
             { id: 6, category: "CF/88 Art. 144", question: "A quem compete a apuração de infrações penais (exceto militares) e a função de polícia judiciária no âmbito estadual?", answer: "À Polícia Civil, dirigida por Delegado de Polícia de carreira." },
-            { id: 7, category: "POP 8.01 Biossegurança", question: "Quais os EPIs mínimos obrigatórios para adentrar um local de crime com risco biológico?", answer: "Luvas de nitrila/látex, máscara PFF2/N95, macacão impermeável com capuz e sapatilhas pró-pé." }
+            { id: 7, category: "POP 8.01 Biossegurança", question: "Quais os EPIs mínimos obrigatórios para adentrar um local de crime com risco biológico?", answer: "Luvas de nitrila/látex, máscara PFF2/N95, macacão impermeável com capuz e sapatilhas pró-pé." },
+            { id: 8, category: "Processo Penal", question: "Quais são as 10 etapas oficiais da Cadeia de Custódia segundo o Art. 158-B do CPP?", answer: "Reconhecimento, Isolamento, Fixação, Coleta, Recebimento, Processamento, Armazenamento, Descarte, Transporte e Destinação." }
         ];
 
         // Persistent State Storage (localStorage)
@@ -475,13 +691,16 @@
         let flashcardData = JSON.parse(localStorage.getItem('pcrr_flashcards')) || defaultFlashcards;
         let feynmanNotes = JSON.parse(localStorage.getItem('pcrr_feynman')) || [];
 
+        let activeFilteredCards = [];
         let currentActiveFcIndex = 0;
         let activeEditTopicId = null;
+        let activeStudyTopicId = null;
         let chartInstance = null;
 
         window.onload = function() {
             renderSyllabus();
-            renderFlashcard();
+            populateCategoryDropdown();
+            filterFlashcards();
             renderFeynmanList();
             initChart();
             updateScores();
@@ -494,24 +713,519 @@
                 btn.classList.add('text-slate-600');
             });
 
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) targetTab.classList.remove('hidden');
+
             const activeNav = document.getElementById('nav-' + tabId);
-            activeNav.classList.add('text-google-blue', 'bg-blue-50', 'border', 'border-blue-100');
-            activeNav.classList.remove('text-slate-600');
+            if (activeNav) {
+                activeNav.classList.add('text-google-blue', 'bg-blue-50', 'border', 'border-blue-100');
+                activeNav.classList.remove('text-slate-600');
+            }
 
             if (tabId === 'desempenho') {
                 updateChart();
             }
         }
 
+        function filterByDay(dayShort) {
+            const select = document.getElementById('filterDay');
+            if (select) select.value = dayShort;
+            renderSyllabus();
+        }
+
+        function renderSyllabus() {
+            const tbody = document.getElementById('syllabusTableBody');
+            if (!tbody) return;
+
+            const filterSelect = document.getElementById('filterDay');
+            const filter = filterSelect ? filterSelect.value : 'all';
+            tbody.innerHTML = '';
+
+            syllabusData.forEach(item => {
+                if (filter !== 'all' && (!item.dayShort || !item.dayShort.includes(filter))) return;
+
+                let statusColor = 'bg-rose-100 text-rose-700';
+                if (item.status === 'Em Revisão' || item.status === 'Em Estudo') statusColor = 'bg-amber-100 text-amber-700';
+                if (item.status === 'Dominado') statusColor = 'bg-emerald-100 text-emerald-700';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition-all";
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <span class="inline-block bg-blue-50 text-google-blue border border-blue-100 font-bold text-xs px-2.5 py-1 rounded-lg">
+                            <i class="fa-regular fa-clock mr-1"></i> ${item.day}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <div class="font-bold text-slate-800">${item.subject}</div>
+                        <div class="text-xs text-slate-500 max-w-xs">${item.topic}</div>
+                    </td>
+                    <td class="p-4">
+                        <span class="inline-block ${item.weight === 2 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-[10px] font-bold px-2 py-0.5 rounded-md border">
+                            Peso ${item.weight}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-semibold text-google-blue hover:underline bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            <span>${item.source}</span>
+                        </a>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-block ${statusColor} text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                                ${item.status}
+                            </span>
+                            <span class="text-xs font-bold text-slate-700">${item.accuracy}%</span>
+                        </div>
+                    </td>
+                    <td class="p-4 text-right">
+                        <button onclick="startStudySession(${item.id})" class="bg-google-blue hover:bg-google-blueHover text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1">
+                            <i class="fa-solid fa-book-open"></i> Estudar & Anotar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function startStudySession(id) {
+            activeStudyTopicId = id;
+            const item = syllabusData.find(x => x.id === id);
+            if (!item) return;
+
+            document.getElementById('studyModalDayTag').innerText = item.day;
+            document.getElementById('studyModalTopicTitle').innerText = `${item.subject} — ${item.topic}`;
+            document.getElementById('studyModalSourceText').innerText = item.source;
+            document.getElementById('studyModalLinkBtn').href = item.url;
+            document.getElementById('studyModalAccuracy').value = item.accuracy || 0;
+            document.getElementById('studyModalNoteInput').value = '';
+
+            const modal = document.getElementById('studyNoteModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeStudyNoteModal() {
+            const modal = document.getElementById('studyNoteModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function saveStudySessionNote() {
+            const noteText = document.getElementById('studyModalNoteInput').value.trim();
+            const accuracyVal = parseInt(document.getElementById('studyModalAccuracy').value) || 0;
+            const item = syllabusData.find(x => x.id === activeStudyTopicId);
+
+            if (item) {
+                item.accuracy = Math.min(100, Math.max(0, accuracyVal));
+                
+                if (item.accuracy >= 80) {
+                    item.status = "Dominado";
+                } else if (item.accuracy >= 40) {
+                    item.status = "Em Revisão";
+                } else {
+                    item.status = "Em Estudo";
+                }
+
+                localStorage.setItem('pcrr_syllabus', JSON.stringify(syllabusData));
+            }
+
+            // Save Feynman note if content was typed
+            if (noteText && item) {
+                feynmanNotes.unshift({
+                    id: Date.now(),
+                    topic: `${item.subject} — ${item.topic}`,
+                    content: noteText,
+                    date: new Date().toLocaleDateString('pt-BR')
+                });
+                localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
+                renderFeynmanList();
+            }
+
+            renderSyllabus();
+            updateScores();
+            closeStudyNoteModal();
+        }
+
+        function populateCategoryDropdown() {
+            const select = document.getElementById('flashcardCategoryFilter');
+            if (!select) return;
+
+            const categories = [...new Set(flashcardData.map(c => c.category))];
+            select.innerHTML = '<option value="all">Todas as Categorias / Fontes</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.innerText = cat;
+                select.appendChild(opt);
+            });
+        }
+
+        function filterFlashcards() {
+            const select = document.getElementById('flashcardCategoryFilter');
+            const selectedCat = select ? select.value : 'all';
+
+            if (selectedCat === 'all') {
+                activeFilteredCards = [...flashcardData];
+            } else {
+                activeFilteredCards = flashcardData.filter(c => c.category === selectedCat);
+            }
+            
+            currentActiveFcIndex = 0;
+            renderFlashcard();
+        }
+
+        function renderFlashcard() {
+            const qElem = document.getElementById('flashcardQuestion');
+            const aElem = document.getElementById('flashcardAnswer');
+            const catElem = document.getElementById('flashcardCategoryTag');
+            const counterElem = document.getElementById('flashcardCounter');
+            const badgeElem = document.getElementById('flashcardBadge');
+
+            if (badgeElem) badgeElem.innerText = flashcardData.length;
+
+            if (activeFilteredCards.length === 0) {
+                if (qElem) qElem.innerText = "Nenhum cartão cadastrado nesta categoria.";
+                if (aElem) aElem.innerText = "Adicione novos cartões usando o botão acima.";
+                if (catElem) catElem.innerText = "Vazio";
+                if (counterElem) counterElem.innerText = "0 de 0";
+                return;
+            }
+
+            const card = activeFilteredCards[currentActiveFcIndex];
+            if (qElem) qElem.innerText = card.question;
+            if (aElem) aElem.innerText = card.answer;
+            if (catElem) catElem.innerText = card.category;
+            if (counterElem) counterElem.innerText = `Cartão ${currentActiveFcIndex + 1} de ${activeFilteredCards.length}`;
+
+            const cardInner = document.getElementById('flashcardInner');
+            if (cardInner) cardInner.classList.remove('flipped');
+        }
+
+        function flipCard() {
+            const cardInner = document.getElementById('flashcardInner');
+            if (cardInner) cardInner.classList.toggle('flipped');
+        }
+
+        function rateFlashcard(rating) {
+            if (activeFilteredCards.length === 0) return;
+            currentActiveFcIndex = (currentActiveFcIndex + 1) % activeFilteredCards.length;
+            renderFlashcard();
+        }
+
+        function openNewFlashcardModal() {
+            const modal = document.getElementById('newFlashcardModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeNewFlashcardModal() {
+            const modal = document.getElementById('newFlashcardModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function saveNewFlashcard() {
+            const catInput = document.getElementById('newFcCategory');
+            const qInput = document.getElementById('newFcQuestion');
+            const aInput = document.getElementById('newFcAnswer');
+
+            const cat = catInput ? catInput.value.trim() || "Geral" : "Geral";
+            const q = qInput ? qInput.value.trim() : "";
+            const a = aInput ? aInput.value.trim() : "";
+
+            if (!q || !a) return;
+
+            const newCard = {
+                id: Date.now(),
+                category: cat,
+                question: q,
+                answer: a
+            };
+
+            flashcardData.push(newCard);
+            localStorage.setItem('pcrr_flashcards', JSON.stringify(flashcardData));
+            
+            if (catInput) catInput.value = '';
+            if (qInput) qInput.value = '';
+            if (aInput) aInput.value = '';
+
+            populateCategoryDropdown();
+            const filterSelect = document.getElementById('flashcardCategoryFilter');
+            if (filterSelect) filterSelect.value = cat;
+            
+            filterFlashcards();
+            closeNewFlashcardModal();
+        }
+
+        function openManageCardsModal() {
+            renderManageCardsList();
+            const modal = document.getElementById('manageCardsModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeManageCardsModal() {
+            const modal = document.getElementById('manageCardsModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function deleteFlashcard(id) {
+            flashcardData = flashcardData.filter(c => c.id !== id);
+            localStorage.setItem('pcrr_flashcards', JSON.stringify(flashcardData));
+            populateCategoryDropdown();
+            filterFlashcards();
+            renderManageCardsList();
+        }
+
+        function renderManageCardsList() {
+            const container = document.getElementById('manageCardsList');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (flashcardData.length === 0) {
+                container.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center">Nenhum flashcard cadastrado.</div>';
+                return;
+            }
+
+            flashcardData.forEach(card => {
+                const item = document.createElement('div');
+                item.className = "py-3 px-2 flex justify-between items-start gap-4 hover:bg-slate-50 transition-all rounded-lg";
+                item.innerHTML = `
+                    <div class="space-y-1 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-blue-100 text-google-blue text-[10px] font-bold px-2 py-0.5 rounded-md">${card.category}</span>
+                        </div>
+                        <p class="text-xs font-bold text-slate-800">P: ${card.question}</p>
+                        <p class="text-xs text-slate-600">R: ${card.answer}</p>
+                    </div>
+                    <button onclick="deleteFlashcard(${card.id})" class="text-slate-400 hover:text-rose-500 text-xs p-1 rounded transition-all">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function saveFeynmanNote() {
+            const topicInput = document.getElementById('feynmanTopic');
+            const contentInput = document.getElementById('feynmanContent');
+
+            const topic = topicInput ? topicInput.value.trim() : "";
+            const content = contentInput ? contentInput.value.trim() : "";
+
+            if (!topic || !content) return;
+
+            feynmanNotes.unshift({
+                id: Date.now(),
+                topic: topic,
+                content: content,
+                date: new Date().toLocaleDateString('pt-BR')
+            });
+
+            localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
+            if (topicInput) topicInput.value = '';
+            if (contentInput) contentInput.value = '';
+            renderFeynmanList();
+        }
+
+        function deleteFeynmanNote(id) {
+            feynmanNotes = feynmanNotes.filter(n => n.id !== id);
+            localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
+            renderFeynmanList();
+        }
+
+        function renderFeynmanList() {
+            const container = document.getElementById('feynmanList');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (feynmanNotes.length === 0) {
+                container.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center">Nenhuma anotação criada ainda.</div>';
+                return;
+            }
+
+            feynmanNotes.forEach(note => {
+                const item = document.createElement('div');
+                item.className = "bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1 relative group";
+                item.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-xs text-slate-800 pr-6">${note.topic}</span>
+                        <span class="text-[10px] text-slate-400">${note.date}</span>
+                    </div>
+                    <p class="text-xs text-slate-600 line-clamp-3">${note.content}</p>
+                    <button onclick="deleteFeynmanNote(${note.id})" class="absolute top-2 right-2 text-slate-400 hover:text-rose-500 text-xs px-1.5 py-0.5 rounded transition-all">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function openStatusModal(id) {
+            activeEditTopicId = id;
+            const item = syllabusData.find(x => x.id === id);
+            if (!item) return;
+
+            const titleElem = document.getElementById('modalTopicTitle');
+            const inputElem = document.getElementById('modalAccuracyInput');
+
+            if (titleElem) titleElem.innerText = `${item.subject} (${item.topic})`;
+            if (inputElem) inputElem.value = item.accuracy;
+
+            const modal = document.getElementById('statusModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeStatusModal() {
+            const modal = document.getElementById('statusModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function saveTopicAccuracy() {
+            const inputElem = document.getElementById('modalAccuracyInput');
+            const acc = inputElem ? parseInt(inputElem.value) || 0 : 0;
+            const item = syllabusData.find(x => x.id === activeEditTopicId);
+            
+            if (item) {
+                item.accuracy = Math.min(100, Math.max(0, acc));
+
+                if (item.accuracy >= 80) {
+                    item.status = "Dominado";
+                } else if (item.accuracy >= 40) {
+                    item.status = "Em Revisão";
+                } else {
+                    item.status = "Pendente";
+                }
+
+                localStorage.setItem('pcrr_syllabus', JSON.stringify(syllabusData));
+                renderSyllabus();
+                updateScores();
+            }
+
+            closeStatusModal();
+        }
+
+        function updateScores() {
+            let scoreG = 0; // max 20
+            let scoreE = 0; // max 80
+
+            syllabusData.forEach(item => {
+                const proportionalScore = (item.accuracy / 100);
+                if (item.block === 'geral') {
+                    scoreG += proportionalScore * 6.6;
+                } else {
+                    scoreE += proportionalScore * 11.4;
+                }
+            });
+
+            scoreG = Math.round(scoreG);
+            scoreE = Math.min(80, Math.round(scoreE));
+            const total = scoreG + scoreE;
+
+            const sgElem = document.getElementById('scoreGeral');
+            const seElem = document.getElementById('scoreEspecifica');
+            const hsElem = document.getElementById('headerScore');
+            const hpElem = document.getElementById('headerProgressBar');
+
+            if (sgElem) sgElem.innerText = scoreG;
+            if (seElem) seElem.innerText = scoreE;
+            if (hsElem) hsElem.innerText = `${total} / 100 pts`;
+            if (hpElem) hpElem.style.width = `${total}%`;
+
+            const statusG = document.getElementById('statusGeralText');
+            if (statusG) {
+                if (scoreG >= 10) {
+                    statusG.innerText = "Aprovado no Mínimo";
+                    statusG.className = "text-emerald-600 font-bold";
+                } else {
+                    statusG.innerText = "Abaixo do Mínimo (Eliminado)";
+                    statusG.className = "text-rose-500 font-bold";
+                }
+            }
+
+            const statusE = document.getElementById('statusEspecificaText');
+            if (statusE) {
+                if (scoreE >= 40) {
+                    statusE.innerText = "Aprovado no Mínimo";
+                    statusE.className = "text-emerald-600 font-bold";
+                } else {
+                    statusE.innerText = "Abaixo do Mínimo (Eliminado)";
+                    statusE.className = "text-rose-500 font-bold";
+                }
+            }
+        }
+
+        function initChart() {
+            const canvas = document.getElementById('performanceChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: syllabusData.map(x => x.subject),
+                    datasets: [{
+                        label: 'Taxa de Acertos (%)',
+                        data: syllabusData.map(x => x.accuracy),
+                        backgroundColor: '#1a73e8',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart() {
+            if (!chartInstance) return;
+            chartInstance.data.labels = syllabusData.map(x => x.subject);
+            chartInstance.data.datasets[0].data = syllabusData.map(x => x.accuracy);
+            chartInstance.update();
+        }
+
         function openBackupModal() {
-            document.getElementById('backupModal').classList.remove('hidden');
-            document.getElementById('backupModal').classList.add('flex');
+            const modal = document.getElementById('backupModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
         }
 
         function closeBackupModal() {
-            document.getElementById('backupModal').classList.add('hidden');
-            document.getElementById('backupModal').classList.remove('flex');
+            const modal = document.getElementById('backupModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
         }
 
         function exportDataJSON() {
@@ -549,278 +1263,24 @@
                         localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
                     }
                     renderSyllabus();
-                    renderFlashcard();
+                    populateCategoryDropdown();
+                    filterFlashcards();
                     renderFeynmanList();
                     updateScores();
-                    if (chartInstance) updateChart();
+                    updateChart();
                     closeBackupModal();
                 } catch(err) {
-                    alert("Arquivo de backup inválido.");
+                    console.error("Erro ao importar backup", err);
                 }
             };
-            if (event.target.files[0]) {
+            if (event.target && event.target.files[0]) {
                 fileReader.readAsText(event.target.files[0]);
             }
         }
 
-        function deleteFeynmanNote(id) {
-            feynmanNotes = feynmanNotes.filter(n => n.id !== id);
-            localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
-            renderFeynmanList();
-        }
-
-        function renderFeynmanList() {
-            const container = document.getElementById('feynmanList');
-            container.innerHTML = '';
-
-            if (feynmanNotes.length === 0) {
-                container.innerHTML = '<div class="text-xs text-slate-400 p-4 text-center">Nenhuma anotação criada ainda.</div>';
-                return;
-            }
-
-            feynmanNotes.forEach(note => {
-                const item = document.createElement('div');
-                item.className = "bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1 relative group";
-                item.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-xs text-slate-800 pr-6">${note.topic}</span>
-                        <span class="text-[10px] text-slate-400">${note.date}</span>
-                    </div>
-                    <p class="text-xs text-slate-600 line-clamp-3">${note.content}</p>
-                    <button onclick="deleteFeynmanNote(${note.id})" class="absolute top-2 right-2 text-slate-400 hover:text-rose-500 text-xs px-1.5 py-0.5 rounded transition-all">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        function saveFeynmanNote() {
-            const topic = document.getElementById('feynmanTopic').value;
-            const content = document.getElementById('feynmanContent').value;
-
-            if (!topic || !content) return;
-
-            feynmanNotes.unshift({
-                id: Date.now(),
-                topic: topic,
-                content: content,
-                date: new Date().toLocaleDateString('pt-BR')
-            });
-
-            localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
-            document.getElementById('feynmanTopic').value = '';
-            document.getElementById('feynmanContent').value = '';
-            renderFeynmanList();
-        }
-
-        function renderSyllabus() {
-            const tbody = document.getElementById('syllabusTableBody');
-            const filter = document.getElementById('filterWeight').value;
-            tbody.innerHTML = '';
-
-            syllabusData.forEach(item => {
-                if (filter !== 'all' && item.block !== filter) return;
-
-                let statusColor = 'bg-rose-100 text-rose-700';
-                if (item.status === 'Em Revisão') statusColor = 'bg-amber-100 text-amber-700';
-                if (item.status === 'Dominado') statusColor = 'bg-emerald-100 text-emerald-700';
-
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/80 transition-all";
-                tr.innerHTML = `
-                    <td class="p-4">
-                        <div class="font-bold text-slate-800">${item.subject}</div>
-                        <div class="text-xs text-slate-500 max-w-xs">${item.topic}</div>
-                    </td>
-                    <td class="p-4">
-                        <span class="inline-block ${item.weight === 2 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-[10px] font-bold px-2 py-0.5 rounded-md border">
-                            Peso ${item.weight}
-                        </span>
-                    </td>
-                    <td class="p-4 text-xs font-medium text-slate-600">${item.source}</td>
-                    <td class="p-4">
-                        <span class="inline-block ${statusColor} text-xs font-semibold px-2.5 py-1 rounded-full">
-                            ${item.status}
-                        </span>
-                    </td>
-                    <td class="p-4 text-center font-bold text-slate-800">
-                        ${item.accuracy}%
-                    </td>
-                    <td class="p-4 text-right">
-                        <button onclick="openStatusModal(${item.id})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 transition-all">
-                            Editar
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function openStatusModal(id) {
-            activeEditTopicId = id;
-            const item = syllabusData.find(x => x.id === id);
-            document.getElementById('modalTopicTitle').innerText = item.subject + " (" + item.topic + ")";
-            document.getElementById('modalAccuracyInput').value = item.accuracy;
-            document.getElementById('statusModal').classList.remove('hidden');
-            document.getElementById('statusModal').classList.add('flex');
-        }
-
-        function closeStatusModal() {
-            document.getElementById('statusModal').classList.add('hidden');
-            document.getElementById('statusModal').classList.remove('flex');
-        }
-
-        function saveTopicAccuracy() {
-            const acc = parseInt(document.getElementById('modalAccuracyInput').value) || 0;
-            const item = syllabusData.find(x => x.id === activeEditTopicId);
-            item.accuracy = Math.min(100, Math.max(0, acc));
-
-            if (item.accuracy >= 80) {
-                item.status = "Dominado";
-            } else if (item.accuracy >= 50) {
-                item.status = "Em Revisão";
-            } else {
-                item.status = "Pendente";
-            }
-
-            localStorage.setItem('pcrr_syllabus', JSON.stringify(syllabusData));
-            renderSyllabus();
-            updateScores();
-            closeStatusModal();
-        }
-
-        function updateScores() {
-            let scoreG = 0; // max 20
-            let scoreE = 0; // max 80
-
-            syllabusData.forEach(item => {
-                const proportionalScore = (item.accuracy / 100);
-                if (item.block === 'geral') {
-                    scoreG += proportionalScore * 10; // 10 pts per subject
-                } else {
-                    scoreE += proportionalScore * 11.4; // approx for 80 max
-                }
-            });
-
-            scoreG = Math.round(scoreG);
-            scoreE = Math.min(80, Math.round(scoreE));
-            const total = scoreG + scoreE;
-
-            document.getElementById('scoreGeral').innerText = scoreG;
-            document.getElementById('scoreEspecifica').innerText = scoreE;
-            document.getElementById('headerScore').innerText = `${total} / 100 pts`;
-            document.getElementById('headerProgressBar').style.width = `${total}%`;
-
-            // Minimum score qualification status according to PCRR VUNESP rules
-            const statusG = document.getElementById('statusGeralText');
-            if (scoreG >= 10) {
-                statusG.innerText = "Aprovado no Mínimo";
-                statusG.className = "text-emerald-600 font-bold";
-            } else {
-                statusG.innerText = "Abaixo do Mínimo (Eliminado)";
-                statusG.className = "text-rose-500 font-bold";
-            }
-
-            const statusE = document.getElementById('statusEspecificaText');
-            if (scoreE >= 40) {
-                statusE.innerText = "Aprovado no Mínimo";
-                statusE.className = "text-emerald-600 font-bold";
-            } else {
-                statusE.innerText = "Abaixo do Mínimo (Eliminado)";
-                statusE.className = "text-rose-500 font-bold";
-            }
-        }
-
-        function renderFlashcard() {
-            if (flashcardData.length === 0) return;
-            const card = flashcardData[currentActiveFcIndex];
-            document.getElementById('flashcardQuestion').innerText = card.question;
-            document.getElementById('flashcardAnswer').innerText = card.answer;
-            document.getElementById('flashcardCategoryTag').innerText = card.category;
-            document.getElementById('flashcardCounter').innerText = `Cartão ${currentActiveFcIndex + 1} de ${flashcardData.length}`;
-            document.getElementById('flashcardBadge').innerText = flashcardData.length;
-
-            document.getElementById('flashcardInner').classList.remove('flipped');
-        }
-
-        function flipCard() {
-            document.getElementById('flashcardInner').classList.toggle('flipped');
-        }
-
-        function rateFlashcard(rating) {
-            currentActiveFcIndex = (currentActiveFcIndex + 1) % flashcardData.length;
-            renderFlashcard();
-        }
-
-        function openNewFlashcardModal() {
-            document.getElementById('newFlashcardModal').classList.remove('hidden');
-            document.getElementById('newFlashcardModal').classList.add('flex');
-        }
-
-        function closeNewFlashcardModal() {
-            document.getElementById('newFlashcardModal').classList.add('hidden');
-            document.getElementById('newFlashcardModal').classList.remove('flex');
-        }
-
-        function saveNewFlashcard() {
-            const cat = document.getElementById('newFcCategory').value || "Geral";
-            const q = document.getElementById('newFcQuestion').value;
-            const a = document.getElementById('newFcAnswer').value;
-
-            if (!q || !a) return;
-
-            flashcardData.push({
-                id: Date.now(),
-                category: cat,
-                question: q,
-                answer: a
-            });
-
-            localStorage.setItem('pcrr_flashcards', JSON.stringify(flashcardData));
-            currentActiveFcIndex = flashcardData.length - 1;
-            renderFlashcard();
-            closeNewFlashcardModal();
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('performanceChart').getContext('2d');
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: syllabusData.map(x => x.subject),
-                    datasets: [{
-                        label: 'Taxa de Acertos (%)',
-                        data: syllabusData.map(x => x.accuracy),
-                        backgroundColor: '#1a73e8',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateChart() {
-            if (!chartInstance) return;
-            chartInstance.data.labels = syllabusData.map(x => x.subject);
-            chartInstance.data.datasets[0].data = syllabusData.map(x => x.accuracy);
-            chartInstance.update();
-        }
-
         function resetDataModal() {
-            if (confirm("Tem certeza que deseja resetar todos os dados de estudos para o padrão?")) {
-                localStorage.clear();
-                location.reload();
-            }
+            localStorage.clear();
+            location.reload();
         }
     </script>
 </body>
