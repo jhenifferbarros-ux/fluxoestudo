@@ -92,9 +92,9 @@
             <div class="w-28 bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
                 <div id="headerProgressBar" class="bg-google-green h-full rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
-            <button onclick="switchTab('script')" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-slate-200">
-                <i class="fa-brands fa-google text-google-blue text-sm"></i>
-                <span>Sincronizar Google Calendar</span>
+            <button onclick="openBackupModal()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-slate-200">
+                <i class="fa-solid fa-database text-google-blue text-sm"></i>
+                <span>Backup / Backup JSON</span>
             </button>
         </div>
     </header>
@@ -118,11 +118,6 @@
                 <button onclick="switchTab('feynman')" id="nav-feynman" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-slate-100">
                     <i class="fa-solid fa-pen-to-square text-lg w-5 text-center text-slate-500"></i>
                     <span class="hidden lg:inline">Caderno Feynman</span>
-                </button>
-
-                <button onclick="switchTab('script')" id="nav-script" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-slate-100">
-                    <i class="fa-solid fa-code text-lg w-5 text-center text-slate-500"></i>
-                    <span class="hidden lg:inline">Google Apps Script</span>
                 </button>
 
                 <button onclick="switchTab('desempenho')" id="nav-desempenho" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-slate-100">
@@ -306,81 +301,6 @@
                 </div>
             </section>
 
-            <section id="tab-script" class="tab-panel hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-lg bg-blue-100 text-google-blue flex items-center justify-center font-bold">
-                            <i class="fa-brands fa-google"></i>
-                        </div>
-                        <h2 class="text-xl font-bold text-slate-900">Automação Nativa com Google Calendar</h2>
-                    </div>
-                    <p class="text-sm text-slate-600 leading-relaxed max-w-3xl">
-                        Copie o código **Google Apps Script (`Code.gs`)** abaixo e cole na sua conta do Google (gratuito) em <a href="https://script.google.com" target="_blank" class="text-google-blue underline font-medium">script.google.com</a>. Ele criará automaticamente toda a sua agenda de estudos de Segunda a Sexta (19h-21h) e Domingo no seu **Google Agenda**, enviando alertas Push 10 minutos antes no seu celular!
-                    </p>
-                </div>
-
-                <div class="bg-slate-900 text-slate-100 p-6 rounded-2xl shadow-xl relative font-mono text-xs overflow-x-auto">
-                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800 text-slate-400">
-                        <span class="flex items-center gap-2"><i class="fa-solid fa-code text-google-yellow"></i> Google Apps Script (Code.gs)</span>
-                        <button onclick="copyAppsScript()" class="bg-google-blue hover:bg-google-blueHover text-white px-3 py-1.5 rounded-lg font-sans font-medium text-xs transition-all flex items-center gap-1.5">
-                            <i class="fa-regular fa-copy"></i> Copiar Script
-                        </button>
-                    </div>
-                    <pre id="scriptCodeBlock" class="leading-relaxed text-emerald-400">
-/**
- * AUTOMAÇÃO DE CRONOGRAMA PCRR VUNESP - GOOGLE CALENDAR
- * Execute esta função uma única vez em script.google.com
- */
-function criarCronogramaEstudosPCRR() {
-  var agenda = CalendarApp.getDefaultCalendar();
-  var hoje = new Date();
-  
-  // Grade de Horários
-  var diasSemana = [
-    { dia: 1, materia: "PCRR: Português + Direito Constitucional/Admin" }, // Segunda
-    { dia: 2, materia: "PCRR: Matemática + Biossegurança (POPs 8.01/8.02)" }, // Terça
-    { dia: 3, materia: "PCRR: Português + Estatuto Servidores RR" }, // Quarta
-    { dia: 4, materia: "PCRR: Matemática + Noções de Arquivologia" }, // Quinta
-    { dia: 5, materia: "PCRR: Informática + Laboratório (POP 8.03)" }   // Sexta
-  ];
-  
-  Logger.log("Iniciando agendamento no Google Calendar...");
-
-  // Agendar 4 semanas consecutivas
-  for (var semana = 0; semana < 4; semana++) {
-    // Aulas de Segunda a Sexta (19h às 21h)
-    diasSemana.forEach(function(item) {
-      var dataEvento = new Date(hoje.getTime() + (semana * 7 + (item.dia - hoje.getDay() + 7) % 7) * 86400000);
-      dataEvento.setHours(19, 0, 0, 0);
-      
-      var fimEvento = new Date(dataEvento.getTime());
-      fimEvento.setHours(21, 0, 0, 0);
-      
-      var evento = agenda.createEvent("📚 " + item.materia, dataEvento, fimEvento, {
-        description: "Foco total no Estudo Ativo VUNESP. 15min Questões + 30min Teoria + 15min Anki.",
-        location: "Mesa de Estudos"
-      });
-      evento.addPopupReminder(10); // Notificação no Celular 10min antes
-    });
-
-    // Simulado de Domingo (Manhã 08h-10h30 e Tarde 14h-16h30)
-    var domManha = new Date(hoje.getTime() + (semana * 7 + (0 - hoje.getDay() + 7) % 7) * 86400000);
-    domManha.setHours(8, 0, 0, 0);
-    var domManhaFim = new Date(domManha.getTime());
-    domManhaFim.setHours(10, 30, 0, 0);
-
-    var evDom = agenda.createEvent("🎯 PCRR: Simulado de Questões VUNESP (Manhã)", domManha, domManhaFim, {
-      description: "40 a 50 questões inéditas/anteriores sem consulta."
-    });
-    evDom.addPopupReminder(15);
-  }
-  
-  Logger.log("Concluído! Verifique o aplicativo Google Agenda no seu smartphone.");
-}
-                    </pre>
-                </div>
-            </section>
-
             <section id="tab-desempenho" class="tab-panel hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h2 class="text-xl font-bold text-slate-900">Análise de Pontuação & Corte VUNESP</h2>
@@ -491,6 +411,36 @@ function criarCronogramaEstudosPCRR() {
         </div>
     </div>
 
+    <!-- MODAL: BACKUP & DATA IMPORT/EXPORT -->
+    <div id="backupModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-base text-slate-900"><i class="fa-solid fa-cloud-arrow-down text-google-blue mr-2"></i> Gerenciador de Backup dos Estudos</h3>
+                <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Todos os seus dados ficam salvos automaticamente no seu navegador. Para garantir que você não perca seu progresso ao trocar de computador ou celular, você pode exportar e importar seu progresso em formato JSON.
+            </p>
+            <div class="space-y-3 pt-2">
+                <button onclick="exportDataJSON()" class="w-full bg-google-blue hover:bg-google-blueHover text-white py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Exportar Dados (Baixar JSON)
+                </button>
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-3 text-slate-400 text-[10px] uppercase font-bold">Ou Restaurar</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Importar Arquivo de Backup</label>
+                    <input type="file" id="importJsonInput" accept=".json" onchange="importDataJSON(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-google-blue hover:file:bg-blue-100 cursor-pointer">
+                </div>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button onclick="closeBackupModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initial PCRR VUNESP Data Architecture
         const defaultSyllabus = [
@@ -548,6 +498,98 @@ function criarCronogramaEstudosPCRR() {
             if (tabId === 'desempenho') {
                 updateChart();
             }
+        }
+
+        // Backup Modal Controls
+        function openBackupModal() {
+            document.getElementById('backupModal').classList.remove('hidden');
+            document.getElementById('backupModal').classList.add('flex');
+        }
+
+        function closeBackupModal() {
+            document.getElementById('backupModal').classList.add('hidden');
+            document.getElementById('backupModal').classList.remove('flex');
+        }
+
+        function exportDataJSON() {
+            const backupObject = {
+                syllabus: syllabusData,
+                flashcards: flashcardData,
+                feynman: feynmanNotes,
+                exportedAt: new Date().toISOString()
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObject, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `PCRR_Estudos_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDataJSON(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.syllabus) {
+                        syllabusData = parsed.syllabus;
+                        localStorage.setItem('pcrr_syllabus', JSON.stringify(syllabusData));
+                    }
+                    if (parsed.flashcards) {
+                        flashcardData = parsed.flashcards;
+                        localStorage.setItem('pcrr_flashcards', JSON.stringify(flashcardData));
+                    }
+                    if (parsed.feynman) {
+                        feynmanNotes = parsed.feynman;
+                        localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
+                    }
+                    renderSyllabus();
+                    renderFlashcard();
+                    renderFeynmanList();
+                    updateScores();
+                    if (chartInstance) updateChart();
+                    closeBackupModal();
+                } catch(err) {
+                    alert("Arquivo de backup inválido.");
+                }
+            };
+            if (event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0]);
+            }
+        }
+
+        function deleteFeynmanNote(id) {
+            feynmanNotes = feynmanNotes.filter(n => n.id !== id);
+            localStorage.setItem('pcrr_feynman', JSON.stringify(feynmanNotes));
+            renderFeynmanList();
+        }
+
+        function renderFeynmanList() {
+            const container = document.getElementById('feynmanList');
+            container.innerHTML = '';
+
+            if (feynmanNotes.length === 0) {
+                container.innerHTML = '<div class="text-xs text-slate-400 p-4 text-center">Nenhuma anotação criada ainda.</div>';
+                return;
+            }
+
+            feynmanNotes.forEach(note => {
+                const item = document.createElement('div');
+                item.className = "bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1 relative group";
+                item.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-xs text-slate-800 pr-6">${note.topic}</span>
+                        <span class="text-[10px] text-slate-400">${note.date}</span>
+                    </div>
+                    <p class="text-xs text-slate-600 line-clamp-3">${note.content}</p>
+                    <button onclick="deleteFeynmanNote(${note.id})" class="absolute top-2 right-2 text-slate-400 hover:text-rose-500 text-xs px-1.5 py-0.5 rounded transition-all">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
         }
 
         // Render Syllabus Table
@@ -738,45 +780,6 @@ function criarCronogramaEstudosPCRR() {
             document.getElementById('feynmanTopic').value = '';
             document.getElementById('feynmanContent').value = '';
             renderFeynmanList();
-        }
-
-        function renderFeynmanList() {
-            const container = document.getElementById('feynmanList');
-            container.innerHTML = '';
-
-            if (feynmanNotes.length === 0) {
-                container.innerHTML = '<div class="text-xs text-slate-400 p-4 text-center">Nenhuma anotação criada ainda.</div>';
-                return;
-            }
-
-            feynmanNotes.forEach(note => {
-                const item = document.createElement('div');
-                item.className = "bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1";
-                item.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-xs text-slate-800">${note.topic}</span>
-                        <span class="text-[10px] text-slate-400">${note.date}</span>
-                    </div>
-                    <p class="text-xs text-slate-600 line-clamp-2">${note.content}</p>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        function copyAppsScript() {
-            const code = document.getElementById('scriptCodeBlock').innerText;
-            const dummy = document.createElement("textarea");
-            document.body.appendChild(dummy);
-            dummy.value = code;
-            dummy.select();
-            document.execCommand("copy");
-            document.body.removeChild(dummy);
-
-            const btn = event.currentTarget;
-            btn.innerHTML = `<i class="fa-solid fa-check"></i> Copiado!`;
-            setTimeout(() => {
-                btn.innerHTML = `<i class="fa-regular fa-copy"></i> Copiar Script`;
-            }, 2000);
         }
 
         function initChart() {
